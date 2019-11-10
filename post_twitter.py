@@ -106,7 +106,5 @@ dp = updater.dispatcher
 
 dp.add_handler(MessageHandler(Filters.update.channel_posts, manage))
 
-backfill(-1001467136245, 950)
-
 updater.start_polling()
 updater.idle()
