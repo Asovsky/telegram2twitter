@@ -50,8 +50,19 @@ def parseUrl(t):
 			r = r.replace(x, urllib.request.pathname2url(x))
 	return r
 
+def isMeaningful(msg):
+	if msg.photo:
+		return True
+	if not msg.text:
+		return False
+	if msg.text[0] == '/':
+		return False
+	return len(msg.text) > 10
+
 def tweet(msg, chat):
 	if (not matchKey(msg.text)) and (not matchKey(chat.title)):
+		return
+	if not isMeaningful(msg):
 		return
 	if msg.photo:
 		filename = 'tmp' + msg.photo[-1].get_file().file_path.strip().split('/')[-1]
