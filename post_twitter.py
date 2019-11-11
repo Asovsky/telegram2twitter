@@ -88,7 +88,7 @@ def backfill(chat_id, limit):
 			tweet(r, r.forward_from_chat)
 		except Exception as e:
 			if str(e) in EXPECTED_ERRORS:
-				return
+				continue
 			if 'a bit shorter' in str(e):
 				print(str(e))
 				print(r.text)
