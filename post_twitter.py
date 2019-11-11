@@ -9,6 +9,7 @@ import tweepy
 import yaml
 import time
 import urllib.request
+import os
 
 with open('CREDENTIALS') as f:
 	CREDENTIALS = json.load(f)
@@ -90,10 +91,11 @@ def manage(update, context):
 		print(e)
 		tb.print_exc()
 
-def backfill(chat_id, limit):
-	for message_id in range(300, limit):
+def backfill(chat_id, fill_range):
+	for message_id in fill_range:
 		try:
 			time.sleep(1)
+			print(message_id)
 			r = updater.bot.forward_message(
 				chat_id = test_channel, message_id = message_id, from_chat_id = chat_id)
 			tweet(r, r.forward_from_chat)
@@ -116,6 +118,8 @@ updater = Updater(CREDENTIALS['bot_token'], use_context=True)
 dp = updater.dispatcher
 
 dp.add_handler(MessageHandler(Filters.update.channel_posts, manage))
+
+# backfill(-1001409716127, range(150, 200))
 
 updater.start_polling()
 updater.idle()
