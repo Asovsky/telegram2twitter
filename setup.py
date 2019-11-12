@@ -25,7 +25,9 @@ def setup(arg = ''):
 		os.system('sudo python3 get-pip.py')
 		os.system('rm get-pip.py')
 	
-	os.system('sudo pip3 install -r requirements.txt')
+	if arg not in ['debug', 'reload']:
+		os.system('sudo pip3 install -r requirements.txt')
+		
 	try:
 		from telegram.ext import Updater, MessageHandler, Filters
 	except:
