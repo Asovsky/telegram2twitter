@@ -1,4 +1,4 @@
 python-telegram-bot
 tweepy
 pyyaml
-telegram_util
+telegram_util>=0.0.3

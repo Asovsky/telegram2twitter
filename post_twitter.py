@@ -11,7 +11,7 @@ import time
 import os
 import urllib.request
 import threading
-from telegram_util import matchKey, parseUrl, isMeaningful, getTmpFile
+from telegram_util import matchKey, parseUrl, isMeaningful, getTmpFile, log_on_fail
 
 with open('CREDENTIALS') as f:
 	CREDENTIALS = json.load(f)
@@ -29,6 +29,8 @@ queue = []
 
 EXPECTED_ERRORS = ['Message to forward not found', "Message can't be forwarded"]
 
+updater = Updater(CREDENTIALS['bot_token'], use_context=True)
+
 def tweet(msg, chat):
 	if not matchKey(msg.text, KEYS) and not matchKey(chat.title, KEYS): 
 		return
@@ -36,13 +38,15 @@ def tweet(msg, chat):
 		return
 	if msg.photo:
 		filename = getTmpFile(msg)
-		api.update_with_media(filename)
+		r = api.update_with_media(filename)
+		print(r)
 		os.system('rm ' + filename)
 		return 
 	# Deal with msg update
-	api.update_status(parseUrl(msg.text))
+	r = api.update_status(parseUrl(msg.text))
+	print(r)
 
-# TODO: try catch decorator
+@log_on_fail(updater)
 def manage(update, context):
 	global queue
 	msg = update.effective_message 
@@ -62,10 +66,9 @@ auth = tweepy.OAuthHandler(CREDENTIALS['twitter_consumer_key'], CREDENTIALS['twi
 auth.set_access_token(CREDENTIALS['twitter_access_token'], CREDENTIALS['twitter_access_secret'])
 api = tweepy.API(auth)
 
-updater = Updater(CREDENTIALS['bot_token'], use_context=True)
 updater.dispatcher.add_handler(MessageHandler(Filters.update.channel_posts, manage))
 
-# TODO: try catch decorator
+@log_on_fail(updater, EXPECTED_ERRORS)
 def loopImp():
 	if not queue:
 		return
