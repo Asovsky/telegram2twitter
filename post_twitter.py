@@ -11,6 +11,7 @@ import time
 import os
 import urllib.request
 import threading
+from telegram_util import matchKey, parseUrl, isMeaningful, getTmpFile
 
 with open('CREDENTIALS') as f:
 	CREDENTIALS = json.load(f)
@@ -27,54 +28,6 @@ test_channel = -1001159399317
 queue = []
 
 EXPECTED_ERRORS = ['Message to forward not found', "Message can't be forwarded"]
-
-# TODO: move this to util lib
-def matchKey(t, keys):
-	if not t:
-		return False
-	for k in keys:
-		if k in t:
-			return True
-	return False
-
-# TODO: move this to util lib
-def isUrl(t):
-	for key in ['telegra.ph', 'com/']:
-		if key in t:
-			return True
-	return False
-
-# TODO: move this to util lib
-def parseUrl(t):
-	r = t
-	for x in t.split():
-		if not isUrl(x):
-			continue
-		if '://' in x:
-			x = x[x.find('://') + 3:]
-		for s in x.split('/'):
-			if '?' in s:
-				continue
-			r = r.replace(x, urllib.request.pathname2url(x))
-	return r
-
-# TODO: move this to util lib
-def isMeaningful(msg):
-	if msg.media_group_id:
-		return False
-	if msg.photo:
-		return True
-	if not msg.text:
-		return False
-	if msg.text[0] == '/':
-		return False
-	return len(msg.text) > 10
-
-# TODO: move this to util lib
-def getTmpFile(msg):
-	filename = 'tmp' + msg.photo[-1].get_file().file_path.strip().split('/')[-1]
-	msg.photo[-1].get_file().download(filename)
-	return filename
 
 def tweet(msg, chat):
 	if not matchKey(msg.text, KEYS) and not matchKey(chat.title, KEYS): 
