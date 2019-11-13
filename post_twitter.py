@@ -31,20 +31,20 @@ EXPECTED_ERRORS = ['Message to forward not found', "Message can't be forwarded"]
 
 updater = Updater(CREDENTIALS['bot_token'], use_context=True)
 
+def tweetMsg(msg):
+	if msg.photo:
+		filename = getTmpFile(msg)
+		r = api.update_with_media(filename)
+		os.system('rm ' + filename)
+		return r
+	return api.update_status(parseUrl(msg.text))
+
 def tweet(msg, chat):
 	if not matchKey(msg.text, KEYS) and not matchKey(chat.title, KEYS): 
 		return
 	if not isMeaningful(msg):
 		return
-	if msg.photo:
-		filename = getTmpFile(msg)
-		r = api.update_with_media(filename)
-		print(r)
-		os.system('rm ' + filename)
-		return 
-	# Deal with msg update
-	r = api.update_status(parseUrl(msg.text))
-	print(r)
+	tweetMsg(msg)
 
 @log_on_fail(updater)
 def manage(update, context):
