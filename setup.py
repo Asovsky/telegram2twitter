@@ -1,33 +1,18 @@
 import os
 import sys
-import json
 
 REQUIRED_KEYS = set(['bot_token', 'twitter_consumer_key', 'twitter_consumer_secret', 'twitter_access_token', 'twitter_access_secret'])
 
 def setup(arg = ''):
 	RUN_COMMAND = 'nohup python3 -u post_twitter.py &'
 
-	CREDENTIALS = {}
-	try:
-		with open('CREDENTIALS') as f:
-			CREDENTIALS = json.load(f)
-	except:
-		pass
-
-	for key in REQUIRED_KEYS:
-		if key not in CREDENTIALS:
-			print('ERROR: please fill the CREDENTIALS file in json format, required keys : ' + ', '.join(sorted(REQUIRED_KEYS)))
-			return
-
-	r = os.system('pip3 --version')
-	if r != 0:
-		os.system('curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py')
-		os.system('sudo python3 get-pip.py')
-		os.system('rm get-pip.py')
-	
-	if arg not in ['debug', 'reload']:
-		os.system('sudo pip3 install -r requirements.txt')
-		
+	if arg != 'debug':
+		r = os.system('sudo pip3 install -r requirements.txt')
+		if r != 0:
+			os.system('curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py')
+			os.system('sudo python3 get-pip.py')
+			os.system('rm get-pip.py')
+			os.system('sudo pip3 install -r requirements.txt')
 	try:
 		from telegram.ext import Updater, MessageHandler, Filters
 	except:
