@@ -50,7 +50,6 @@ def tweet(msg, chat):
 
 @log_on_fail(debug_group)
 def manageMsg(update, context):
-	print('here')
 	global queue
 	msg = update.effective_message 
 	if not msg:
@@ -59,7 +58,6 @@ def manageMsg(update, context):
 		return
 	if update.effective_chat.id not in SUBSCRIPTION:
 		return
-	print(msg)
 	queue.append((update.effective_chat.id, msg.message_id))
 
 @log_on_fail(debug_group)
