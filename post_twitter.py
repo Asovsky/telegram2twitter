@@ -11,7 +11,7 @@ import time
 import os
 import urllib.request
 import threading
-from telegram_util import matchKey, parseUrl, isMeaningful, getTmpFile, log_on_fail
+from telegram_util import matchKey, parseUrl, isMeaningful, getTmpFile, log_on_fail, addToQueue
 
 with open('CREDENTIALS') as f:
 	CREDENTIALS = json.load(f)
@@ -50,13 +50,8 @@ def tweet(msg, chat):
 
 @log_on_fail(debug_group)
 def manageMsg(update, context):
-	msg = update.effective_message 
-	if not msg or not msg.chat:
-		return
-	if msg.chat.id not in SUBSCRIPTION:
-		return
 	global queue
-	queue.append((msg.chat.id, msg.message_id))
+	addToQueue(update, queue)
 
 @log_on_fail(debug_group)
 def start(update, context):
