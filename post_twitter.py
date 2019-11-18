@@ -34,7 +34,6 @@ queue = []
 EXPECTED_ERRORS = ['Message to forward not found', "Message can't be forwarded"]
 
 def tweetMsg(msg):
-	print('herey')
 	if msg.photo:
 		filename = getTmpFile(msg)
 		r = api.update_with_media(filename)
