@@ -54,11 +54,11 @@ def manageMsg(update, context):
 	msg = update.effective_message 
 	if not msg:
 		return
-	if not update.effective_chat:
+	if not update.chat:
 		return
-	if update.effective_chat.id not in SUBSCRIPTION:
+	if update.chat.id not in SUBSCRIPTION:
 		return
-	queue.append((update.effective_chat.id, msg.message_id))
+	queue.append((update.chat.id, msg.message_id))
 
 @log_on_fail(debug_group)
 def start(update, context):
