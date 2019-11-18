@@ -34,6 +34,7 @@ queue = []
 EXPECTED_ERRORS = ['Message to forward not found', "Message can't be forwarded"]
 
 def tweetMsg(msg):
+	print('herey')
 	if msg.photo:
 		filename = getTmpFile(msg)
 		r = api.update_with_media(filename)
@@ -50,15 +51,13 @@ def tweet(msg, chat):
 
 @log_on_fail(debug_group)
 def manageMsg(update, context):
-	global queue
 	msg = update.effective_message 
-	if not msg:
+	if not msg or not msg.chat:
 		return
-	if not update.message or not update.message.chat:
+	if msg.chat.id not in SUBSCRIPTION:
 		return
-	if update.message.chat.id not in SUBSCRIPTION:
-		return
-	queue.append((update.chat.id, msg.message_id))
+	global queue
+	queue.append((msg.chat.id, msg.message_id))
 
 @log_on_fail(debug_group)
 def start(update, context):
