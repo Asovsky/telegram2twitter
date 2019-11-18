@@ -26,7 +26,7 @@ with open('KEYS') as f:
 with open('SUBSCRIPTION') as f:
 	SUBSCRIPTION = yaml.load(f, Loader=yaml.FullLoader).keys()
 
-LOOP_INTERVAL = 1
+LOOP_INTERVAL = 7200
 
 test_channel = -1001159399317
 queue = []
