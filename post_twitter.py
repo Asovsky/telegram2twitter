@@ -54,9 +54,9 @@ def manageMsg(update, context):
 	msg = update.effective_message 
 	if not msg:
 		return
-	if not update.chat:
+	if not update.msg or not update.message.chat:
 		return
-	if update.chat.id not in SUBSCRIPTION:
+	if update.message.chat.id not in SUBSCRIPTION:
 		return
 	queue.append((update.chat.id, msg.message_id))
 
