@@ -1,8 +1,6 @@
 import os
 import sys
 
-REQUIRED_KEYS = set(['bot_token', 'twitter_consumer_key', 'twitter_consumer_secret', 'twitter_access_token', 'twitter_access_secret'])
-
 def setup(arg = ''):
 	RUN_COMMAND = 'nohup python3 -u post_twitter.py &'
 
