@@ -64,9 +64,8 @@ def run():
 		auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
 		auth.set_access_token(credential['channels'][channel]['access_key'], credential['channels'][channel]['access_secret'])
 		api = tweepy.API(auth)
-		for album in getPosts(channel)[:10]:
+		for album in getPosts(channel)[:20]:
 			status_text = getText(channel, album.cap_html)
-			print(status_text, len(status_text))
 			if len(status_text) > 280: 
 				continue
 			if existing.get(album.url):
@@ -76,6 +75,7 @@ def run():
 				media_ids = getMedia(album, api)
 			except ImgVideoTooLargeException:
 				continue
+			print('len_media_ids', len(media_ids))
 			result = api.update_status(status=status_text, media_ids=media_ids)
 			existing.update(album.url, result.id)
 			time.sleep(10)
