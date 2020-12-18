@@ -56,9 +56,12 @@ def getMediaSingle(url, api, album):
 
 def getMedia(album, api):
 	if album.video:
-		result = getMediaSingle(album.video, api, album)
-		if result:
-			return [result]
+		# tweepy does not support video yet. 
+		# Hopefully they will support it soon: https://github.com/tweepy/tweepy/pull/1414
+		return [] 
+		# result = getMediaSingle(album.video, api, album)
+		# if result:
+		# 	return [result]
 	result = [getMediaSingle(img, api, album) for img in album.imgs]
 	return [item for item in result if item][:4]
 
@@ -74,7 +77,6 @@ def run():
 				continue
 			if existing.get(album.url):
 				continue
-			time.sleep(10)
 			existing.update(album.url, -1) # place holder
 			media_ids = [item for item in getMedia(album, api) if item]
 			if not media_ids and (album.video or album.imgs):
@@ -83,7 +85,8 @@ def run():
 			try:
 				result = api.update_status(status=status_text, media_ids=media_ids)
 			except Exception as e:
-				print('send twitter status failed:', str(e), album.url)
+				if 'Tweet needs to be a bit shorter.' not in str(e):
+					sprint('send twitter status failed:', str(e), album.url)
 				continue
 			existing.update(album.url, result.id)
 			
