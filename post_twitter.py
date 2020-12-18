@@ -44,21 +44,24 @@ def getText(channel, html):
 		item.replace_with('\n')
 	return soup.text.strip()
 
-class ImgVideoTooLargeException(Exception):
-	pass
-
-def getMediaSingle(url, api):
+def getMediaSingle(url, api, album):
 	cached_url.get(url, force_cache=True, mode='b')
 	path = cached_url.getFilePath(url)
 	if os.stat(path).st_size >= 4883 * 1024: # twitter limit
-		raise ImgVideoTooLargeException('img/video too large')
-	print(url, path)
-	return api.media_upload(path).media_id
+		return
+	try:
+		return api.media_upload(path).media_id
+	except Exception as e:
+		print('media upload failed:', str(e), album.url, url, path)
 
 def getMedia(album, api):
 	if album.video:
-		return [getMediaSingle(album.video, api)]
-	return [getMediaSingle(img, api) for img in album.imgs[:4]]
+		result = getMediaSingle(album.video, api, album)
+		if result:
+			return [result]
+	result = [getMediaSingle(img, api, album) for img in album.imgs]
+	return [item for item in result if item][:4]
+
 		
 def run():
 	for channel in credential['channels']:
@@ -72,15 +75,14 @@ def run():
 			if existing.get(album.url):
 				continue
 			existing.update(album.url, 0) # place holder
-			try:
-				media_ids = getMedia(album, api)
-			except ImgVideoTooLargeException:
+			media_ids = [item for item in getMedia(album, api) if item]
+			if not media_ids and (album.video or album.imgs):
+				print('all media upload failed: ', album.url)
 				continue
-			print('len_media_ids', len(media_ids))
 			try:
 				result = api.update_status(status=status_text, media_ids=media_ids)
 			except Exception as e:
-				print('send twitter status failed:', str(e))
+				print('send twitter status failed:', str(e), album.url)
 			existing.update(album.url, result.id)
 			time.sleep(600)
 			
