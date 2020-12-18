@@ -102,7 +102,6 @@ def run():
 			if not status_text:
 				print('no status_text: ', album.url)
 				continue
-			time.sleep(10)
 			try:
 				result = api.update_status(status=status_text, media_ids=media_ids)
 			except Exception as e:
@@ -110,6 +109,7 @@ def run():
 					print('send twitter status failed:', str(e), album.url)
 				continue
 			existing.update(album.url, result.id)
+			return # only send one item every 10 minute
 			
 if __name__ == '__main__':
 	run()
