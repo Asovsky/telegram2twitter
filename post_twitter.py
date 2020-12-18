@@ -63,7 +63,6 @@ def getMedia(album, api):
 		# 	return [result]
 	result = [getMediaSingle(img, api, album) for img in album.imgs]
 	return [item for item in result if item][:4]
-
 		
 def run():
 	for channel in credential['channels']:
