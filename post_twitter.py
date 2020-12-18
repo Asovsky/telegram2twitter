@@ -77,7 +77,10 @@ def run():
 			except ImgVideoTooLargeException:
 				continue
 			print('len_media_ids', len(media_ids))
-			result = api.update_status(status=status_text, media_ids=media_ids)
+			try:
+				result = api.update_status(status=status_text, media_ids=media_ids)
+			except Exception as e:
+				print('send twitter status failed:', str(e))
 			existing.update(album.url, result.id)
 			time.sleep(600)
 			
