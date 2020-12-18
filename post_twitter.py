@@ -28,11 +28,10 @@ def getPosts(channel):
 		posts = webgram.getPosts(channel, posts[0].post_id, 
 			direction='before', force_cache=True)[1:]
 		result += posts
-	return [post_2_album.get('https://t.me/' + post.getKey()) for post in result if post.time < time.time() - Day]
+	return [(post_2_album.get('https://t.me/' + post.getKey()), post) for post in result if post.time < time.time() - Day]
 
-# there is channel specific optimization
-def getText(channel, html):
-	soup = BeautifulSoup(html, 'html.parser')
+def getText(album, post):
+	soup = BeautifulSoup(album.cap_html, 'html.parser')
 	for item in soup.find_all('a'):
 		if item.get('href'):
 			if 'telegra.ph' in item.get('href') and 'douban.com/note/' in html:
@@ -43,7 +42,10 @@ def getText(channel, html):
 				item.replace_with(item.get('href'))
 	for item in soup.find_all('br'):
 		item.replace_with('\n')
-	return soup.text.strip()
+	text = soup.text.strip()
+	if post.file:
+		text += '\n\n' + album.url
+	return text
 
 def getMediaSingle(url, api, album):
 	cached_url.get(url, force_cache=True, mode='b')
@@ -70,8 +72,8 @@ def run():
 		auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
 		auth.set_access_token(credential['channels'][channel]['access_key'], credential['channels'][channel]['access_secret'])
 		api = tweepy.API(auth)
-		for album in getPosts(channel):
-			status_text = getText(channel, album.cap_html)
+		for album, post in getPosts(channel):
+			status_text = getText(album, post)
 			if len(status_text) > 280: 
 				continue
 			if existing.get(album.url):
