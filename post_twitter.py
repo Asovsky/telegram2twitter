@@ -8,6 +8,7 @@ import plain_db
 import webgram
 import post_2_album
 from bs4 import BeautifulSoup
+import cached_url
 
 with open('credential') as f:
 	credential = yaml.load(f, Loader=yaml.FullLoader)
@@ -44,6 +45,16 @@ def getText(html):
 		item.replace_with('\n')
 	return soup.text
 
+def getMediaSingle(url, api):
+	cached_url.get(url, force_cache=True, mode='b')
+	return api.media_upload(cached_url.getFilePath(url)).media_id
+
+def getMedia(album, api):
+	if album.video:
+		yield getMediaSingle(album.video, api)
+	for img in album.imgs:
+		yield getMediaSingle(img, api)
+		
 def run():
 	for channel in credential['channels']:
 		auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
@@ -51,8 +62,13 @@ def run():
 		api = tweepy.API(auth)
 		for album in getPosts(channel)[:1]:
 			status_text = getText(album.cap_html)
+			if len(status_text) > 280: 
+				continue
+			if existing.get(album.url):
+				continue
+			media_ids = list(getMedia(album, api))
+			result = api.update_status(status=status_text, media_ids=media_ids)
+			existing.update(album.url, result.id)
 			
-
-
 if __name__ == '__main__':
 	run()
