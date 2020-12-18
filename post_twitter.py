@@ -55,10 +55,9 @@ def getMediaSingle(url, api, album):
 		print('media upload failed:', str(e), album.url, url, path)
 
 def getMedia(album, api):
-	if album.video:
-		# tweepy does not support video yet. 
+	# tweepy does not support video yet. 
 		# Hopefully they will support it soon: https://github.com/tweepy/tweepy/pull/1414
-		return [] 
+	# if album.video:
 		# result = getMediaSingle(album.video, api, album)
 		# if result:
 		# 	return [result]
