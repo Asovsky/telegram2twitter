@@ -10,6 +10,7 @@ import post_2_album
 from bs4 import BeautifulSoup
 import cached_url
 import os
+import export_to_telegraph
 
 with open('credential') as f:
 	credential = yaml.load(f, Loader=yaml.FullLoader)
@@ -37,8 +38,9 @@ def getLinkReplace(url, album):
 		return '\n\n' + url
 	if 'telegra.ph' in url:
 		soup = BeautifulSoup(cached_url.get(url, force_cache=True), 'html.parser')
+		title = export_to_telegraph.getTitle(url)
 		try:
-			return b.find('address').find('a')['href']
+			return title + ' ' + soup.find('address').find('a')['href']
 		except:
 			return ''
 	return url
