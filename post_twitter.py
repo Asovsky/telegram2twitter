@@ -23,7 +23,8 @@ def getPosts(channel):
 	result = []
 	posts = webgram.getPosts(channel)[1:]
 	result += posts
-	while posts and posts[0].time > time.time() - 2 * Day:
+	while posts and posts[0].time > (time.time() - 
+			credential['channels'][channel]['back_days'] * Day):
 		posts = webgram.getPosts(channel, posts[0].post_id, 
 			direction='before', force_cache=True)[1:]
 		result += posts
@@ -84,7 +85,7 @@ def run():
 				result = api.update_status(status=status_text, media_ids=media_ids)
 			except Exception as e:
 				if 'Tweet needs to be a bit shorter.' not in str(e):
-					sprint('send twitter status failed:', str(e), album.url)
+					print('send twitter status failed:', str(e), album.url)
 				continue
 			existing.update(album.url, result.id)
 			
