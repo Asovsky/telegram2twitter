@@ -28,14 +28,20 @@ def getPosts(channel):
 		result += posts
 	return [post_2_album.get('https://t.me/' + post.getKey()) for post in result if post.time < time.time() - Day]
 
-def getText(html):
+# there is channel specific optimization
+def getText(channel, html):
 	soup = BeautifulSoup(html, 'html.parser')
 	for item in soup.find_all('a'):
 		if item.get('href'):
-			item.replace_with(item.get('href'))
+			if 'telegra.ph' in item.get('href') and 'douban.com/note/' in html:
+				item.decompose()
+			elif 'douban.com/' in item.get('href'):
+				item.replace_with('\n\n' + item.get('href'))
+			else:
+				item.replace_with(item.get('href'))
 	for item in soup.find_all('br'):
 		item.replace_with('\n')
-	return soup.text
+	return soup.text.strip()
 
 def getMediaSingle(url, api):
 	cached_url.get(url, force_cache=True, mode='b')
@@ -51,8 +57,8 @@ def run():
 		auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
 		auth.set_access_token(credential['channels'][channel]['access_key'], credential['channels'][channel]['access_secret'])
 		api = tweepy.API(auth)
-		for album in getPosts(channel)[:2]:
-			status_text = getText(album.cap_html)
+		for album in getPosts(channel)[:3]:
+			status_text = getText(channel, album.cap_html)
 			print(status_text, len(status_text))
 			if len(status_text) > 280: 
 				continue
