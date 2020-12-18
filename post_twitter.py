@@ -40,19 +40,19 @@ def getText(html):
 	for item in soup.find_all('a'):
 		if item.get('href'):
 			item.replace_with(item.get('href'))
+	for item in soup.find_all('br'):
+		item.replace_with('\n')
 	return soup.text
 
 def run():
 	for channel in credential['channels']:
+		auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
+		auth.set_access_token(credential['channels'][channel]['access_key'], credential['channels'][channel]['access_secret'])
+		api = tweepy.API(auth)
 		for album in getPosts(channel)[:1]:
-			status_text = getText(album.html_cap)
-			print(status_text)
+			status_text = getText(album.cap_html)
+			
 
 
 if __name__ == '__main__':
 	run()
-
- 
-auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
-auth.set_access_token(credential['twitter_access_token'], credential['twitter_access_secret'])
-api = tweepy.API(auth)
