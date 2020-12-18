@@ -21,11 +21,11 @@ Day = 24 * 60 * 60
 def getPosts(channel):
 	start = time.time()
 	result = []
-	posts = webgram.getPosts(channel, force_cache=True)[1:]
+	posts = webgram.getPosts(channel)[1:]
 	result += posts
 	while posts and posts[0].time > time.time() - 2 * Day:
 		posts = webgram.getPosts(channel, posts[0].post_id, 
-			direction='before')[1:]
+			direction='before', force_cache=True)[1:]
 		result += posts
 	return [post_2_album.get('https://t.me/' + post.getKey()) for post in result if post.time < time.time() - Day]
 
