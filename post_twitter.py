@@ -30,16 +30,24 @@ def getPosts(channel):
 		result += posts
 	return [(post_2_album.get('https://t.me/' + post.getKey()), post) for post in result if post.time < time.time() - Day]
 
+def getLinkReplace(url, album):
+	if 'telegra.ph' in url and 'douban.com/note/' in album.cap_html:
+		return ''
+	if 'douban.com/' in url:
+		return '\n\n' + url
+	if 'telegra.ph' in url:
+		soup = BeautifulSoup(cached_url.get(url, force_cache=True), 'html.parser')
+		try:
+			return b.find('address').find('a')['href']
+		except:
+			return ''
+	return url
+
 def getText(album, post):
 	soup = BeautifulSoup(album.cap_html, 'html.parser')
 	for item in soup.find_all('a'):
 		if item.get('href'):
-			if 'telegra.ph' in item.get('href') and 'douban.com/note/' in album.cap_html:
-				item.decompose()
-			elif 'douban.com/' in item.get('href'):
-				item.replace_with('\n\n' + item.get('href'))
-			else:
-				item.replace_with(item.get('href'))
+			item.replace_with(getLinkReplace(item.get('href'), album))
 	for item in soup.find_all('br'):
 		item.replace_with('\n')
 	text = soup.text.strip()
