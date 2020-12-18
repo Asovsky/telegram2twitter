@@ -23,7 +23,5 @@ with open('credential') as f:
 # 	tweetMsg(msg)
  
 auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
-print(auth.get_authorization_url())
-auth.get_access_token('')
 # auth.set_access_token(credential['twitter_access_token'], credential['twitter_access_secret'])
 # api = tweepy.API(auth)
