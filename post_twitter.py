@@ -74,7 +74,7 @@ def run():
 				continue
 			if existing.get(album.url):
 				continue
-			existing.update(album.url, 0) # place holder
+			existing.update(album.url, -1) # place holder
 			media_ids = [item for item in getMedia(album, api) if item]
 			if not media_ids and (album.video or album.imgs):
 				print('all media upload failed: ', album.url)
