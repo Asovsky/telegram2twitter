@@ -17,14 +17,6 @@ existing = plain_db.load('existing')
 
 Day = 24 * 60 * 60
 
-# def tweetMsg(msg):
-# 	if msg.photo:
-# 		filename = getTmpFile(msg)
-# 		r = api.update_with_media(filename)
-# 		os.system('rm ' + filename)
-# 		return r
-# 	return api.update_status(parseUrl(msg.text))
-
 def getPosts(channel):
 	start = time.time()
 	result = []
@@ -51,22 +43,23 @@ def getMediaSingle(url, api):
 
 def getMedia(album, api):
 	if album.video:
-		yield getMediaSingle(album.video, api)
-	for img in album.imgs:
-		yield getMediaSingle(img, api)
+		return [getMediaSingle(album.video, api)]
+	return [getMediaSingle(img, api) for img in album.imgs[:4]]
 		
 def run():
 	for channel in credential['channels']:
 		auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
 		auth.set_access_token(credential['channels'][channel]['access_key'], credential['channels'][channel]['access_secret'])
 		api = tweepy.API(auth)
-		for album in getPosts(channel)[:1]:
+		for album in getPosts(channel)[:2]:
 			status_text = getText(album.cap_html)
+			print(status_text, len(status_text))
 			if len(status_text) > 280: 
 				continue
 			if existing.get(album.url):
 				continue
-			media_ids = list(getMedia(album, api))
+			existing.update(album.url, 0) # place holder
+			media_ids = getMedia(album, api)
 			result = api.update_status(status=status_text, media_ids=media_ids)
 			existing.update(album.url, result.id)
 			
