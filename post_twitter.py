@@ -29,9 +29,7 @@ def getPosts(channel):
 		posts = webgram.getPosts(channel, posts[0].post_id, 
 			direction='before', force_cache=True)[1:]
 		result += posts
-	print('here')
 	for post in result:
-		print(post.getKey())
 		if post.time > time.time() - Day:
 			continue
 		try:
