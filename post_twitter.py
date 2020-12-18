@@ -9,6 +9,7 @@ import webgram
 import post_2_album
 from bs4 import BeautifulSoup
 import cached_url
+import os
 
 with open('credential') as f:
 	credential = yaml.load(f, Loader=yaml.FullLoader)
@@ -43,9 +44,15 @@ def getText(channel, html):
 		item.replace_with('\n')
 	return soup.text.strip()
 
+class ImgVideoTooLargeException(Exception):
+	pass
+
 def getMediaSingle(url, api):
 	cached_url.get(url, force_cache=True, mode='b')
-	return api.media_upload(cached_url.getFilePath(url)).media_id
+	path = cached_url.getFilePath(url)
+	if os.stat(path).st_size >= 4883 * 1024: # twitter limit
+		raise ImgVideoTooLargeException('img/video too large')
+	return api.media_upload(path).media_id
 
 def getMedia(album, api):
 	if album.video:
@@ -65,7 +72,10 @@ def run():
 			if existing.get(album.url):
 				continue
 			existing.update(album.url, 0) # place holder
-			media_ids = getMedia(album, api)
+			try:
+				media_ids = getMedia(album, api)
+			except ImgVideoTooLargeException:
+				continue
 			result = api.update_status(status=status_text, media_ids=media_ids)
 			existing.update(album.url, result.id)
 			time.sleep(10)
