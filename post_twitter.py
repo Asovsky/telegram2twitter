@@ -99,6 +99,9 @@ def run():
 			if not media_ids and (album.video or album.imgs):
 				print('all media upload failed: ', album.url)
 				continue
+			if not status_text:
+				print('no status_text: ', album.url)
+				continue
 			time.sleep(10)
 			try:
 				result = api.update_status(status=status_text, media_ids=media_ids)
