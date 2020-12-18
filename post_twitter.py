@@ -29,7 +29,13 @@ def getPosts(channel):
 		posts = webgram.getPosts(channel, posts[0].post_id, 
 			direction='before', force_cache=True)[1:]
 		result += posts
-	return [(post_2_album.get('https://t.me/' + post.getKey()), post) for post in result if post.time < time.time() - Day]
+	for post in result:
+		if post.time > time.time() - Day:
+			continue
+		try:
+			yield post_2_album.get('https://t.me/' + post.getKey()), post
+		except Exception as e:
+			print('post_2_album failed', post.getKey(), str(e))
 
 def getLinkReplace(url, album):
 	if 'telegra.ph' in url and 'douban.com/note/' in album.cap_html:
