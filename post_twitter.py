@@ -74,6 +74,7 @@ def run():
 				continue
 			if existing.get(album.url):
 				continue
+			time.sleep(10)
 			existing.update(album.url, -1) # place holder
 			media_ids = [item for item in getMedia(album, api) if item]
 			if not media_ids and (album.video or album.imgs):
@@ -83,8 +84,8 @@ def run():
 				result = api.update_status(status=status_text, media_ids=media_ids)
 			except Exception as e:
 				print('send twitter status failed:', str(e), album.url)
+				continue
 			existing.update(album.url, result.id)
-			time.sleep(600)
 			
 if __name__ == '__main__':
 	run()
