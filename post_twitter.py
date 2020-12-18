@@ -31,20 +31,20 @@ Day = 24 * 60 * 60
 # 	tweetMsg(msg)
 
 def getPosts(channel):
-    start = time.time()
-    result = []
-    posts = webgram.getPosts(channel, force_cache=True)[1:]
-    result += posts
-    while posts and posts[0].time > time.time() - 2 * Day:
-        posts = webgram.getPosts(channel, posts[0].post_id, 
-            direction='before')[1:]
-        result += posts
-    return [post_2_album.get('https://t.me/' + post.getKey()) for post in result if post.time < time.time() - Day]
+	start = time.time()
+	result = []
+	posts = webgram.getPosts(channel, force_cache=True)[1:]
+	result += posts
+	while posts and posts[0].time > time.time() - 2 * Day:
+		posts = webgram.getPosts(channel, posts[0].post_id, 
+			direction='before')[1:]
+		result += posts
+	return [post_2_album.get('https://t.me/' + post.getKey()) for post in result if post.time < time.time() - Day]
 
 def run():
 	for channel in credential['channels']:
 		for album in getPosts(channel)[:1]:
-            print(album)
+			print(album)
 
 
 if __name__ == '__main__':
