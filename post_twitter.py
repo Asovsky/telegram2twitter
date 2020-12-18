@@ -52,6 +52,7 @@ def getMediaSingle(url, api):
 	path = cached_url.getFilePath(url)
 	if os.stat(path).st_size >= 4883 * 1024: # twitter limit
 		raise ImgVideoTooLargeException('img/video too large')
+	print(url, path)
 	return api.media_upload(path).media_id
 
 def getMedia(album, api):
@@ -64,7 +65,7 @@ def run():
 		auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
 		auth.set_access_token(credential['channels'][channel]['access_key'], credential['channels'][channel]['access_secret'])
 		api = tweepy.API(auth)
-		for album in getPosts(channel)[:20]:
+		for album in getPosts(channel):
 			status_text = getText(channel, album.cap_html)
 			if len(status_text) > 280: 
 				continue
@@ -78,7 +79,7 @@ def run():
 			print('len_media_ids', len(media_ids))
 			result = api.update_status(status=status_text, media_ids=media_ids)
 			existing.update(album.url, result.id)
-			time.sleep(10)
+			time.sleep(600)
 			
 if __name__ == '__main__':
 	run()
