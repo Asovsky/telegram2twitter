@@ -1,4 +1,0 @@
-python-telegram-bot
-tweepy
-pyyaml
-telegram_util>=0.0.15
