@@ -7,6 +7,7 @@ import time
 import plain_db
 import webgram
 import post_2_album
+from bs4 import BeautifulSoup
 
 with open('credential') as f:
 	credential = yaml.load(f, Loader=yaml.FullLoader)
@@ -23,13 +24,6 @@ Day = 24 * 60 * 60
 # 		return r
 # 	return api.update_status(parseUrl(msg.text))
 
-# def tweet(msg, chat):
-# 	if not matchKey(msg.text, KEYS) and not matchKey(chat.title, KEYS): 
-# 		return
-# 	if not isMeaningful(msg):
-# 		return
-# 	tweetMsg(msg)
-
 def getPosts(channel):
 	start = time.time()
 	result = []
@@ -41,10 +35,18 @@ def getPosts(channel):
 		result += posts
 	return [post_2_album.get('https://t.me/' + post.getKey()) for post in result if post.time < time.time() - Day]
 
+def getText(html):
+	soup = BeautifulSoup(html, 'html.parser')
+	for item in soup.find_all('a'):
+		if item.get('href'):
+			item.replace_with(item.get('href'))
+	return soup.text
+
 def run():
 	for channel in credential['channels']:
 		for album in getPosts(channel)[:1]:
-			print(album)
+			status_text = getText(album.html_cap)
+			print(status_text)
 
 
 if __name__ == '__main__':
