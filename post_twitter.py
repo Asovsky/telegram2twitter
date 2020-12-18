@@ -34,7 +34,7 @@ def getText(album, post):
 	soup = BeautifulSoup(album.cap_html, 'html.parser')
 	for item in soup.find_all('a'):
 		if item.get('href'):
-			if 'telegra.ph' in item.get('href') and 'douban.com/note/' in html:
+			if 'telegra.ph' in item.get('href') and 'douban.com/note/' in album.cap_html:
 				item.decompose()
 			elif 'douban.com/' in item.get('href'):
 				item.replace_with('\n\n' + item.get('href'))
@@ -83,6 +83,7 @@ def run():
 			if not media_ids and (album.video or album.imgs):
 				print('all media upload failed: ', album.url)
 				continue
+			time.sleep(10)
 			try:
 				result = api.update_status(status=status_text, media_ids=media_ids)
 			except Exception as e:
