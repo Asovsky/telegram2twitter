@@ -74,11 +74,10 @@ async def getMediaSingle(api, post):
         return
     if os.stat(fn).st_size >= 4883 * 1024: # twitter limit
         return
-    return api.media_upload(fn).media_id
-    # try:
-    #     return api.media_upload(fn).media_id
-    # except Exception as e:
-    #     print('media upload failed:', str(e))
+    try:
+        return api.media_upload(fn).media_id
+    except Exception as e:
+        print('media upload failed:', str(e))
 
 async def getMedia(api, posts):
     # tweepy does not support video yet.  https://github.com/tweepy/tweepy/pull/1486
