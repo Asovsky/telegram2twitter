@@ -110,6 +110,12 @@ def run():
 				continue
 			existing.update(album.url, result.id)
 			return # only send one item every 10 minute
+
+
+def auth():
+	auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
+	print(auth.get_authorization_url())
 			
 if __name__ == '__main__':
-	run()
+	# run()
+	auth()
