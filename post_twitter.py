@@ -89,35 +89,55 @@ def matchLanguage(channel, status_text):
 	if not credential['channels'][channel].get('chinese_only'):
 		return True
 	return isCN(status_text)
+
+twitter_api_cache = {}
+def getTwitterApi(channel):
+	cache_key = credential['channels'][channel]['access_key']
+	if cache_key in twitter_api_cache:
+		return twitter_api_cache[cache_key]
+	auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
+	auth.set_access_token(credential['channels'][channel]['access_key'], credential['channels'][channel]['access_secret'])
+	api = tweepy.API(auth)
+	twitter_api_cache[cache_key] = api
+	return api
+
+async def getTelethonClient():
+	
+
+async def post(channel):
+	api = getTwitterApi(channel)
+
+	media_ids = [item for item in getMedia(album, api) if item]
+	if not media_ids and (album.video or album.imgs):
+		print('all media upload failed: ', album.url)
+		continue
+	try:
+		return api.update_status(status=status_text, media_ids=media_ids)
+	except Exception as e:
+		if 'Tweet needs to be a bit shorter.' not in str(e):
+			print('send twitter status failed:', str(e), album.url)
 		
-def run():
+async def run():
 	for channel in credential['channels']:
-		auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
-		auth.set_access_token(credential['channels'][channel]['access_key'], credential['channels'][channel]['access_secret'])
-		api = tweepy.API(auth)
 		for album, post in getPosts(channel):
-			status_text = getText(album, post)
-			if len(status_text) > 280: 
-				continue
 			if existing.get(album.url):
 				continue
 			if not matchLanguage(channel, status_text):
 				continue
-			existing.update(album.url, -1) # place holder
-			media_ids = [item for item in getMedia(album, api) if item]
-			if not media_ids and (album.video or album.imgs):
-				print('all media upload failed: ', album.url)
+			if album.video and (not album.imgs):
 				continue
-			if not status_text:
-				status_text = album.url
-			try:
-				result = api.update_status(status=status_text, media_ids=media_ids)
-			except Exception as e:
-				if 'Tweet needs to be a bit shorter.' not in str(e):
-					print('send twitter status failed:', str(e), album.url)
+			status_text = getText(album, post) or album.url
+			if len(status_text) > 280: 
+				continue
+			existing.update(album.url, -1) # place holder
+			result = await post(channel)
+			if not result:
 				continue
 			existing.update(album.url, result.id)
 			return # only send one item every 10 minute
 		
 if __name__ == '__main__':
-	run()
+	loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    r = loop.run_until_complete(run())
+    loop.close()
