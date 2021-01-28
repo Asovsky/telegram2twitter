@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 import cached_url
 import os
 import export_to_telegraph
+from telegram_util import isCN
 
 with open('credential') as f:
 	credential = yaml.load(f, Loader=yaml.FullLoader)
@@ -83,6 +84,11 @@ def getMedia(album, api):
 		# 	return [result]
 	result = [getMediaSingle(img, api, album) for img in album.imgs]
 	return [item for item in result if item][:4]
+
+def matchLanguage(channel, status_text):
+	if not channel.get('chinese_only'):
+		return True
+	return isCN(status_text)
 		
 def run():
 	for channel in credential['channels']:
@@ -94,6 +100,8 @@ def run():
 			if len(status_text) > 280: 
 				continue
 			if existing.get(album.url):
+				continue
+			if not matchLanguage(channel, status_text):
 				continue
 			existing.update(album.url, -1) # place holder
 			media_ids = [item for item in getMedia(album, api) if item]
