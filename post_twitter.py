@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from telethon import TelegramClient
-from telethon.tl.functions.messages import GetHistoryRequest
 import asyncio
 import tweepy
 import yaml
