@@ -82,14 +82,14 @@ async def getMediaSingle(api, post):
 
 async def getMedia(api, posts):
     # tweepy does not support video yet.  https://github.com/tweepy/tweepy/pull/1486
-    count = 0
+    result = []
     for post in posts:
         media = await getMediaSingle(api, post)
         if media:
-            count +=1
-            yield media
-        if count >= 4:
-            break
+            result.append(media)
+        if len(result) >= 4:
+            return result
+    return result
 
 def matchLanguage(channel, status_text):
     if not credential['channels'][channel].get('chinese_only'):
@@ -179,8 +179,8 @@ async def run():
                 continue
             # existing.update(album.url, -1) # place holder
             result = await post_twitter(channel, post, album, status_text)
-            return # test
             if not result:
+                return # test
                 continue
             existing.update(album.url, result.id)
             await client_cache['client'].disconnect()
