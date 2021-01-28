@@ -86,8 +86,9 @@ def getMedia(album, api):
 	return [item for item in result if item][:4]
 
 def matchLanguage(channel, status_text):
-	if not channel.get('chinese_only'):
+	if not credential['channels'][channel].get('chinese_only'):
 		return True
+	print(status_text, isCN(status_text))
 	return isCN(status_text)
 		
 def run():
@@ -118,12 +119,6 @@ def run():
 				continue
 			existing.update(album.url, result.id)
 			return # only send one item every 10 minute
-
-
-def auth():
-	auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
-	print(auth.get_authorization_url())
-			
+		
 if __name__ == '__main__':
-	# run()
-	auth()
+	run()
