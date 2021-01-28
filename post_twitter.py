@@ -149,7 +149,7 @@ async def getMediaIds(api, channel, post, album):
         return []
     client = await getTelethonClient()
     entity = await getChannel(client, channel)
-    posts = await client.get_messages(entity, min_id=post.post_id, max_id = post.post_id + 10)
+    posts = await client.get_messages(entity, min_id=post.post_id - 1, max_id = post.post_id + 9)
     media_ids = await getMedia(api, getGroupedPosts(posts))
     return list(media_ids)
 
@@ -177,10 +177,9 @@ async def run():
                 continue
             if len(status_text) > 280: 
                 continue
-            # existing.update(album.url, -1) # place holder
+            existing.update(album.url, -1) # place holder
             result = await post_twitter(channel, post, album, status_text)
             if not result:
-                return # test
                 continue
             existing.update(album.url, result.id)
             await client_cache['client'].disconnect()
