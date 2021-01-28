@@ -77,7 +77,7 @@ def getMediaSingle(url, api, album):
 
 def getMedia(album, api):
 	# tweepy does not support video yet. 
-		# Hopefully they will support it soon: https://github.com/tweepy/tweepy/pull/1414
+		# Hopefully they will support it soon: https://github.com/tweepy/tweepy/pull/1486
 	# if album.video:
 		# result = getMediaSingle(album.video, api, album)
 		# if result:
@@ -88,7 +88,6 @@ def getMedia(album, api):
 def matchLanguage(channel, status_text):
 	if not credential['channels'][channel].get('chinese_only'):
 		return True
-	print(status_text, isCN(status_text))
 	return isCN(status_text)
 		
 def run():
