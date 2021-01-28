@@ -68,25 +68,28 @@ def getText(album, post):
         text += '\n\n' + album.url
     return text
 
-def getMediaSingle(url, api, album):
-    cached_url.get(url, force_cache=True, mode='b')
-    path = cached_url.getFilePath(url)
-    if os.stat(path).st_size >= 4883 * 1024: # twitter limit
+async def getMediaSingle(api, post):
+    fn = await post.download_media('tmp/')
+    if not fn:
         return
-    try:
-        return api.media_upload(path).media_id
-    except Exception as e:
-        print('media upload failed:', str(e), album.url, url, path)
+    if os.stat(fn).st_size >= 4883 * 1024: # twitter limit
+        return
+    return api.media_upload(fn).media_id
+    # try:
+    #     return api.media_upload(fn).media_id
+    # except Exception as e:
+    #     print('media upload failed:', str(e))
 
-def getMedia(album, api):
-    # tweepy does not support video yet. 
-        # Hopefully they will support it soon: https://github.com/tweepy/tweepy/pull/1486
-    # if album.video:
-        # result = getMediaSingle(album.video, api, album)
-        # if result:
-        #   return [result]
-    result = [getMediaSingle(img, api, album) for img in album.imgs]
-    return [item for item in result if item][:4]
+async def getMedia(api, posts):
+    # tweepy does not support video yet.  https://github.com/tweepy/tweepy/pull/1486
+    count = 0
+    for post in posts:
+        media = await getMediaSingle(api, post)
+        if media:
+            count +=1
+            yield media
+        if count >= 4:
+            break
 
 def matchLanguage(channel, status_text):
     if not credential['channels'][channel].get('chinese_only'):
@@ -95,75 +98,92 @@ def matchLanguage(channel, status_text):
 
 twitter_api_cache = {}
 def getTwitterApi(channel):
-    cache_key = credential['channels'][channel]['access_key']
-    if cache_key in twitter_api_cache:
-        return twitter_api_cache[cache_key]
+    user = credential['channels'][channel]['twitter_user']
+    if user in twitter_api_cache:
+        return twitter_api_cache[user]
     auth = tweepy.OAuthHandler(credential['twitter_consumer_key'], credential['twitter_consumer_secret'])
-    auth.set_access_token(credential['channels'][channel]['access_key'], credential['channels'][channel]['access_secret'])
+    auth.set_access_token(credential['twitter_users'][user]['access_key'], credential['twitter_users'][user]['access_secret'])
     api = tweepy.API(auth)
-    twitter_api_cache[cache_key] = api
+    twitter_api_cache[user] = api
     return api
 
 client_cache = {}
 async def getTelethonClient():
     if 'client' in client_cache:
         return client_cache['client']
-    client = TelegramClient('session_file_' + user, S.credential['api_id'], S.credential['api_hash'])
-    await client.start(password=setting['password'])
+    client = TelegramClient('session_file', credential['telegram_api_id'], credential['telegram_api_hash'])
+    await client.start(password=credential['telegram_user_password'])
     client_cache['client'] = client   
     return client_cache['client']
 
 async def getChannelImp(client, channel):
     if channel not in credential['id_map']:
         entity = await client.get_entity(channel)
-        self.setting['id_map'][channel] = entity.id
+        credential['id_map'][channel] = entity.id
         with open('credential', 'w') as f:
             f.write(yaml.dump(credential, sort_keys=True, indent=2, allow_unicode=True))
         return entity
-    return await client.get_entity(self.setting['id_map'][channel])
+    return await client.get_entity(credential['id_map'][channel])
         
 channels_cache = {}
 async def getChannel(client, channel):
-    if channels_cache[channel]:
+    if channel in channels_cache:
         return channels_cache[channel]
     channels_cache[channel] = await getChannelImp(client, channel)
     return channels_cache[channel]
 
-async def post(channel, post):
-    api = getTwitterApi(channel)
+def getGroupedPosts(posts):
+    grouped_id = None
+    result = []
+    for post in posts[::-1]:
+        if not grouped_id and not post.grouped_id:
+            return [post]
+        if not grouped_id:
+            grouped_id = post.grouped_id
+        if post.grouped_id == grouped_id:
+            result.append(post)
+    return result
+
+async def getMediaIds(api, channel, post, album):
+    if not album.imgs:
+        return []
     client = await getTelethonClient()
     entity = await getChannel(client, channel)
-    posts = await client.get_messages(entity, min_id=post.id, max_id = post_id + 10)
-    print(posts)
+    posts = await client.get_messages(entity, min_id=post.post_id, max_id = post.post_id + 10)
+    media_ids = await getMedia(api, getGroupedPosts(posts))
+    return list(media_ids)
 
-    # media_ids = [item for item in getMedia(album, api) if item]
-    # if not media_ids and (album.video or album.imgs):
-    #     print('all media upload failed: ', album.url)
-    #     continue
-    # try:
-    #     return api.update_status(status=status_text, media_ids=media_ids)
-    # except Exception as e:
-    #     if 'Tweet needs to be a bit shorter.' not in str(e):
-    #         print('send twitter status failed:', str(e), album.url)
+async def post_twitter(channel, post, album, status_text):
+    api = getTwitterApi(channel)
+    media_ids = await getMediaIds(api, channel, post, album)
+    if not media_ids and (album.video or album.imgs):
+        print('all media upload failed: ', album.url)
+        return
+    try:
+        return api.update_status(status=status_text, media_ids=media_ids)
+    except Exception as e:
+        if 'Tweet needs to be a bit shorter.' not in str(e):
+            print('send twitter status failed:', str(e), album.url)
         
 async def run():
     for channel in credential['channels']:
         for album, post in getPosts(channel):
             if existing.get(album.url):
                 continue
-            if not matchLanguage(channel, status_text):
-                continue
             if album.video and (not album.imgs):
                 continue
             status_text = getText(album, post) or album.url
+            if not matchLanguage(channel, status_text):
+                continue
             if len(status_text) > 280: 
                 continue
-            existing.update(album.url, -1) # place holder
-            result = await post(channel, post)
+            # existing.update(album.url, -1) # place holder
+            result = await post_twitter(channel, post, album, status_text)
             return # test
             if not result:
                 continue
             existing.update(album.url, result.id)
+            await client_cache['client'].disconnect()
             return # only send one item every 10 minute
         
 if __name__ == '__main__':
