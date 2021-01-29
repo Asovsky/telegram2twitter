@@ -178,7 +178,8 @@ async def run():
             if not result:
                 continue
             existing.update(album.url, result.id)
-            await client_cache['client'].disconnect()
+            if 'client' in client_cache:
+                await client_cache['client'].disconnect()
             return # only send one item every 10 minute
         
 if __name__ == '__main__':
