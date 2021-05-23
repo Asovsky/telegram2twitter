@@ -31,7 +31,7 @@ def getPosts(channel):
             credential['channels'][channel]['back_days'] * Day):
         pivot = posts[0].post_id
         posts = webgram.getPosts(channel, posts[0].post_id, 
-            direction='before', force_cache=True)[1:]
+            direction='before')[1:]
         result += posts
     for post in result:
         if post.time > time.time() - Day:
