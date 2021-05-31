@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 import cached_url
 import os
 import export_to_telegraph
-from telegram_util import isCN
+from telegram_util import isCN, removeOldFiles
 
 with open('credential') as f:
     credential = yaml.load(f, Loader=yaml.FullLoader)
@@ -162,6 +162,7 @@ async def post_twitter(channel, post, album, status_text):
             print('send twitter status failed:', str(e), album.url)
         
 async def run():
+    removeOldFiles('tmp', day=0.1)
     for channel in credential['channels']:
         for album, post in getPosts(channel):
             if existing.get(album.url):
