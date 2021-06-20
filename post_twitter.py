@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 import cached_url
 import os
 import export_to_telegraph
+import sys
 from telegram_util import isCN, removeOldFiles
 
 with open('credential') as f:
@@ -70,6 +71,8 @@ async def getMediaSingle(api, post):
     if not fn:
         return
     if os.stat(fn).st_size >= 4883 * 1024: # twitter limit
+        if 'debug' in sys.argv:
+            print('media too large', fn, os.stat(fn).st_size)
         return
     try:
         return api.media_upload(fn).media_id
@@ -175,10 +178,14 @@ async def run():
             if len(status_text) > 280: 
                 continue
             existing.update(album.url, -1) # place holder
+            if 'debug' in sys.argv:
+                print(album.url)
             result = await post_twitter(channel, post, album, status_text)
             if not result:
                 continue
             existing.update(album.url, result.id)
+            if 'debug' in sys.argv:
+                print('https://twitter.com/%s/status/%d' % (channel['twitter_user'], ))
             if 'client' in client_cache:
                 await client_cache['client'].disconnect()
             return # only send one item every 10 minute
