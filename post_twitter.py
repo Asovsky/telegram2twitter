@@ -15,6 +15,7 @@ import os
 import export_to_telegraph
 import sys
 from telegram_util import isCN, removeOldFiles
+from moviepy.editor import VideoFileClip
 
 with open('credential') as f:
     credential = yaml.load(f, Loader=yaml.FullLoader)
@@ -70,17 +71,18 @@ async def getMediaSingle(api, post):
     fn = await post.download_media('tmp/')
     if not fn:
         return
-    if os.stat(fn).st_size >= 4883 * 1024: # twitter limit
-        if 'debug' in sys.argv:
-            print('media too large', fn, os.stat(fn).st_size)
-        return
+    if fn.endswith('.mp4'):
+        clip = VideoFileClip(fn)
+        if clip.duration > 30: # twitter api limit video length limit, web/app limit is 140
+            return
+    # if os.stat(fn).st_size >= 4883 * 1024: # twitter limit
+    #     return
     try:
         return api.media_upload(fn).media_id
     except Exception as e:
         print('media upload failed:', str(e))
 
 async def getMedia(api, posts):
-    # tweepy does not support video yet.  https://github.com/tweepy/tweepy/pull/1486
     result = []
     for post in posts:
         media = await getMediaSingle(api, post)
@@ -144,8 +146,6 @@ def getGroupedPosts(posts):
     return result
 
 async def getMediaIds(api, channel, post, album):
-    if not album.imgs:
-        return []
     client = await getTelethonClient()
     entity = await getChannel(client, channel)
     posts = await client.get_messages(entity, min_id=post.post_id - 1, max_id = post.post_id + 9)
@@ -156,7 +156,8 @@ async def post_twitter(channel, post, album, status_text):
     api = getTwitterApi(channel)
     media_ids = await getMediaIds(api, channel, post, album)
     if not media_ids and (album.video or album.imgs):
-        print('all media upload failed: ', album.url)
+        if 'debug' in sys.argv:
+            print('all media upload failed: ', album.url)
         return
     try:
         return api.update_status(status=status_text, media_ids=media_ids)
@@ -170,8 +171,6 @@ async def run():
         for album, post in getPosts(channel):
             if existing.get(album.url):
                 continue
-            # if album.video and (not album.imgs):
-            #     continue
             status_text = getText(album, post) or album.url
             if not matchLanguage(channel, status_text):
                 continue
@@ -185,7 +184,7 @@ async def run():
                 continue
             existing.update(album.url, result.id)
             if 'debug' in sys.argv:
-                print('https://twitter.com/%s/status/%d' % (channel['twitter_user'], ))
+                print('https://twitter.com/%s/status/%d' % (credential['channels'][channel]['twitter_user'], result.id))
             if 'client' in client_cache:
                 await client_cache['client'].disconnect()
             return # only send one item every 10 minute
