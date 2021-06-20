@@ -167,8 +167,8 @@ async def run():
         for album, post in getPosts(channel):
             if existing.get(album.url):
                 continue
-            if album.video and (not album.imgs):
-                continue
+            # if album.video and (not album.imgs):
+            #     continue
             status_text = getText(album, post) or album.url
             if not matchLanguage(channel, status_text):
                 continue
