@@ -43,7 +43,24 @@ def getPosts(channel):
         except Exception as e:
             print('post_2_album failed', post.getKey(), str(e))
 
-def getLinkReplace(url, album):
+def getLinkReplace(url, album, text):
+    if '/status/' in url and 'douban.' in url:
+        return '\n\n' + url
+    if text.strip() == 'source' and 'douban.com/note/' in url:
+        return ''
+    if 'telegra.ph' in url:
+        soup = BeautifulSoup(cached_url.get(url, force_cache=True), 'html.parser')
+        try:
+            url = soup.find('address').find('a')['href']
+        except:
+            return ''
+    
+
+    title = export_to_telegraph.getTitle(url)
+    if title == 'No Title':
+        return '\n\n' + url
+
+
     if 'telegra.ph' in url and 'douban.com/note/' in album.cap_html:
         return ''
     if 'telegra.ph' in url:
@@ -59,7 +76,7 @@ def getText(album, post):
     soup = BeautifulSoup(album.cap_html, 'html.parser')
     for item in soup.find_all('a'):
         if item.get('href'):
-            item.replace_with(getLinkReplace(item.get('href'), album))
+            item.replace_with(getLinkReplace(item.get('href'), album, item.text))
     for item in soup.find_all('br'):
         item.replace_with('\n')
     text = soup.text.strip()
