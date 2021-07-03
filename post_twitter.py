@@ -36,41 +36,30 @@ def getPosts(channel):
             direction='before')[1:]
         result += posts
     for post in result:
-        if post.time > time.time() - Day:
-            continue
+        # if post.time > time.time() - Day:
+        #     continue
         try:
             yield post_2_album.get('https://t.me/' + post.getKey()), post
         except Exception as e:
             print('post_2_album failed', post.getKey(), str(e))
 
 def getLinkReplace(url, album, text):
-    if '/status/' in url and 'douban.' in url:
+    if text.strip() == 'source':
+        if 'douban.com/note/' in url:
+            return ''
         return '\n\n' + url
-    if text.strip() == 'source' and 'douban.com/note/' in url:
-        return ''
+
     if 'telegra.ph' in url:
         soup = BeautifulSoup(cached_url.get(url, force_cache=True), 'html.parser')
         try:
             url = soup.find('address').find('a')['href']
         except:
             return ''
-    
 
     title = export_to_telegraph.getTitle(url)
     if title == 'No Title':
         return '\n\n' + url
-
-
-    if 'telegra.ph' in url and 'douban.com/note/' in album.cap_html:
-        return ''
-    if 'telegra.ph' in url:
-        soup = BeautifulSoup(cached_url.get(url, force_cache=True), 'html.parser')
-        title = export_to_telegraph.getTitle(url)
-        try:
-            return '\n\n【%s】 %s' % (title, soup.find('address').find('a')['href'])
-        except:
-            return ''
-    return '\n\n' + url
+    return '\n\n【%s】 %s' % (title, url)
 
 def getText(album, post):
     soup = BeautifulSoup(album.cap_html, 'html.parser')
@@ -171,11 +160,13 @@ async def getMediaIds(api, channel, post, album):
 
 async def post_twitter(channel, post, album, status_text):
     api = getTwitterApi(channel)
-    media_ids = await getMediaIds(api, channel, post, album)
-    if not media_ids and (album.video or album.imgs):
-        if 'debug' in sys.argv:
-            print('all media upload failed: ', album.url)
-        return
+    media_ids = []
+    if album.video or album.imgs:
+        media_ids = await getMediaIds(api, channel, post, album)
+        if not media_ids:
+            if 'debug' in sys.argv:
+                print('all media upload failed: ', album.url)
+            return
     try:
         return api.update_status(status=status_text, media_ids=media_ids)
     except Exception as e:
