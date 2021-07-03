@@ -36,7 +36,7 @@ def getPosts(channel):
             direction='before')[1:]
         result += posts
     for post in result:
-        if post.time > time.time() - Day and channel != 'douban_read':
+        if post.time > time.time() - Day and post.post_id != 63894:
             continue
         try:
             yield post_2_album.get('https://t.me/' + post.getKey()), post
@@ -161,7 +161,7 @@ async def getMediaIds(api, channel, post, album):
 async def post_twitter(channel, post, album, status_text):
     api = getTwitterApi(channel)
     media_ids = []
-    if album.video or album.imgs:
+    if post.hasVideo() or album.video or album.imgs:
         media_ids = await getMediaIds(api, channel, post, album)
         if not media_ids:
             if 'debug' in sys.argv:
