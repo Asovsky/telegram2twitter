@@ -36,8 +36,8 @@ def getPosts(channel):
             direction='before')[1:]
         result += posts
     for post in result:
-        # if post.time > time.time() - Day:
-        #     continue
+        if post.time > time.time() - Day and channel != 'douban_read':
+            continue
         try:
             yield post_2_album.get('https://t.me/' + post.getKey()), post
         except Exception as e:
