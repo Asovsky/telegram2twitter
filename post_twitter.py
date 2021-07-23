@@ -37,6 +37,7 @@ def getPosts(channel):
         result += posts
     for post in result:
         if post.time > time.time() - credential['channels'][channel]['padding_days'] * Day:
+            # print('padding_time: https://t.me/' + post.getKey(), int((time.time() - post.time) / 60 / 60 ))
             continue
         try:
             yield post_2_album.get('https://t.me/' + post.getKey()), post
