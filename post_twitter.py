@@ -192,7 +192,7 @@ async def run():
             if not result:
                 continue
             existing.update(album.url, result.id)
-            if True: # 'debug' in sys.argv:
+            if 'debug' in sys.argv:
                 print('https://twitter.com/%s/status/%d' % (credential['channels'][channel]['twitter_user'], result.id))
             if 'client' in client_cache:
                 await client_cache['client'].disconnect()
