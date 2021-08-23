@@ -44,9 +44,9 @@ def getPosts(channel):
         except Exception as e:
             print('post_2_album failed', post.getKey(), str(e))
 
-def getLinkReplace(url, album, text):
+def getLinkReplace(url, album, text, all_text):
     if text.strip() == 'source':
-        if 'douban.com/note/' in url:
+        if 'douban.com/note/' in url and matchKey(all_text, ['telegra.ph', 'douban.com/note/']):
             return ''
         return '\n\n' + url
 
@@ -66,7 +66,7 @@ def getText(album, post):
     soup = BeautifulSoup(album.cap_html, 'html.parser')
     for item in soup.find_all('a'):
         if item.get('href'):
-            item.replace_with(getLinkReplace(item.get('href'), album, item.text))
+            item.replace_with(getLinkReplace(item.get('href'), album, item.text, soup.text))
     for item in soup.find_all('br'):
         item.replace_with('\n')
     text = soup.text.strip()
