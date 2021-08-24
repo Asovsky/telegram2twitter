@@ -14,7 +14,7 @@ import cached_url
 import os
 import export_to_telegraph
 import sys
-from telegram_util import isCN, removeOldFiles
+from telegram_util import isCN, removeOldFiles, matchKey
 from moviepy.editor import VideoFileClip
 
 with open('credential') as f:
