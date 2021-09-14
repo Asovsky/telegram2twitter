@@ -177,6 +177,7 @@ async def post_twitter(channel, post, album, status_text):
 async def run():
     removeOldFiles('tmp', day=0.1)
     for channel in credential['channels']:
+        print('post_twitter channel', channel)
         for album, post in getPosts(channel):
             if existing.get(album.url):
                 continue
@@ -185,17 +186,16 @@ async def run():
                 continue
             if len(status_text) > 280: 
                 continue
-            print('post_twitter starting %s' % album.url)
             existing.update(album.url, -1) # place holder
             result = await post_twitter(channel, post, album, status_text)
             if not result:
                 continue
             existing.update(album.url, result.id)
-            print('https://twitter.com/%s/status/%d' % (credential['channels'][channel]['twitter_user'], result.id))
-            print('post_twitter end %s' % album.url)
             if 'client' in client_cache:
                 await client_cache['client'].disconnect()
+            print('post_twitter channel return', channel)
             return # only send one item every 10 minute
+        print('post_twitter channel finish', channel)
         
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()
