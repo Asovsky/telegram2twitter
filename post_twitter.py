@@ -174,10 +174,9 @@ async def post_twitter(channel, post, album, status_text):
         if 'Tweet needs to be a bit shorter.' not in str(e):
             print('send twitter status failed:', str(e), album.url)
         
-async def run():
+async def runImp():
     removeOldFiles('tmp', day=0.1)
     for channel in credential['channels']:
-        print('post_twitter channel', channel)
         for album, post in getPosts(channel):
             if existing.get(album.url):
                 continue
@@ -191,11 +190,12 @@ async def run():
             if not result:
                 continue
             existing.update(album.url, result.id)
-            if 'client' in client_cache:
-                await client_cache['client'].disconnect()
-            print('post_twitter channel return', channel)
             return # only send one item every 10 minute
-        print('post_twitter channel finish', channel)
+
+async def run():
+    await runImp()
+    if 'client' in client_cache:
+        await client_cache['client'].disconnect()
         
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()
