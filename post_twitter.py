@@ -186,14 +186,11 @@ async def run():
             if len(status_text) > 280: 
                 continue
             existing.update(album.url, -1) # place holder
-            if True: #'debug' in sys.argv:
-                print(album.url)
             result = await post_twitter(channel, post, album, status_text)
             if not result:
                 continue
             existing.update(album.url, result.id)
-            if 'debug' in sys.argv:
-                print('https://twitter.com/%s/status/%d' % (credential['channels'][channel]['twitter_user'], result.id))
+            print('https://twitter.com/%s/status/%d' % (credential['channels'][channel]['twitter_user'], result.id))
             if 'client' in client_cache:
                 await client_cache['client'].disconnect()
             return # only send one item every 10 minute
