@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-print('post_twitter 1')
 from telethon import TelegramClient
-print('post_twitter 2')
 import asyncio
-print('post_twitter 3')
 import tweepy
-print('post_twitter 4')
 import yaml
 import time
 import plain_db
@@ -19,15 +15,12 @@ import os
 import export_to_telegraph
 import sys
 from telegram_util import isCN, removeOldFiles, matchKey
-print('post_twitter 5')
 from moviepy.editor import VideoFileClip
-print('post_twitter 6')
 
 with open('credential') as f:
     credential = yaml.load(f, Loader=yaml.FullLoader)
 
 existing = plain_db.load('existing')
-print('post_twitter 7')
 
 Day = 24 * 60 * 60
 
