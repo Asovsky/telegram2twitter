@@ -198,7 +198,12 @@ async def run():
         await client_cache['client'].disconnect()
         
 if __name__ == '__main__':
+    print('post_twitter 1')
     loop = asyncio.new_event_loop()
+    print('post_twitter 2')
     asyncio.set_event_loop(loop)
+    print('post_twitter 3')
     loop.run_until_complete(run())
+    print('post_twitter 4')
     loop.close()
+    print('post_twitter 5')
