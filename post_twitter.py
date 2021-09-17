@@ -24,21 +24,8 @@ existing = plain_db.load('existing')
 
 Day = 24 * 60 * 60
 
-def getCutoffTime(channel, results):
-    cutoff_time = time.time() - credential['channels'][channel]['padding_days'] * Day
-    if not credential['channels'][channel].get('smart_padding'):
-        return cutoff_time
-    max_timestamp = 0
-    max_edit_timestamp = 0
-    for post in result:
-        meta = post.soup.find('span', 'tgme_widget_message_meta')
-        if not meta: 
-            continue
-        if 'edited' in meta.text:
-            max_edit_timestamp = max(max_edit_timestamp, post.time)
-        max_timestamp = max(max_timestamp, post.time)
-
-
+def getCutoffTime(channel, posts):
+    return time.time() - credential['channels'][channel]['padding_days'] * Day
 
 def getPosts(channel):
     start = time.time()
@@ -51,12 +38,9 @@ def getPosts(channel):
         posts = webgram.getPosts(channel, posts[0].post_id, 
             direction='before')[1:]
         result += posts
-    cutoff_time = getCutoffTime(channel, results)
+    cutoff_time = getCutoffTime(channel, result)
     for post in result:
-        if post.time > time.time() - credential['channels'][channel]['padding_days'] * Day:
-            print(post.soup)
-            break # testing
-            # print('padding_time: https://t.me/' + post.getKey(), int((time.time() - post.time) / 60 / 60 ))
+        if post.time > cutoff_time:
             continue
         try:
             yield post_2_album.get('https://t.me/' + post.getKey()), post
