@@ -102,10 +102,10 @@ async def getMedia(api, posts):
             return result
     return result
 
-def matchLanguage(channel, status_text):
-    if not credential['channels'][channel].get('chinese_only'):
-        return True
-    return isCN(status_text)
+# def matchLanguage(channel, status_text):
+#     if not credential['channels'][channel].get('chinese_only'):
+#         return True
+#     return isCN(status_text)
 
 twitter_api_cache = {}
 def getTwitterApi(channel):
@@ -184,8 +184,8 @@ async def runImp():
             if existing.get(album.url):
                 continue
             status_text = getText(album, post) or album.url
-            if not matchLanguage(channel, status_text):
-                continue
+            # if not matchLanguage(channel, status_text):
+            #     continue
             if len(status_text) > 280: 
                 continue
             existing.update(album.url, -1) # place holder
