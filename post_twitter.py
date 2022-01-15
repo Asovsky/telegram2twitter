@@ -177,8 +177,24 @@ async def post_twitter(channel, post, album, status_text):
         if 'Tweet needs to be a bit shorter.' not in str(e):
             print('send twitter status failed:', str(e), album.url)
         
+
+def lenOk(text):
+    return sum([2 if isCN(char) else 1 for char in text])
+
 def cutText(text):
-    
+    result = ''
+    last_good = text
+    for substr in text.split('。')[:-1]:
+        result += substr + '。'
+        if lenOk(result):
+            last_good = result
+        else:
+            return last_good
+    result += text.split('。')[-1]
+    if lenOk(result):
+        return text
+    else:
+        return last_good
 
 async def runImp():
     removeOldFiles('tmp', day=0.1)
@@ -189,6 +205,7 @@ async def runImp():
             status_text = getText(album, post) or album.url
             if credential['channels'][channel].get('cut_text'):
                 status_text = cutText(status_text)
+                print(status_text)
             if len(status_text) > 280: 
                 continue
             existing.update(album.url, -1) # place holder
