@@ -179,7 +179,7 @@ async def post_twitter(channel, post, album, status_text):
         
 
 def lenOk(text):
-    return sum([2 if isCN(char) else 1 for char in text])
+    return sum([2 if isCN(char) else 1 for char in text]) <= 280
 
 def cutText(text):
     result = ''
@@ -203,7 +203,6 @@ async def runImp():
             if existing.get(album.url):
                 continue
             status_text = getText(album, post) or album.url
-            print(channel)
             if credential['channels'][channel].get('cut_text'):
                 status_text = cutText(status_text)
                 print(status_text)
