@@ -205,7 +205,6 @@ async def runImp():
             status_text = getText(album, post) or album.url
             if credential['channels'][channel].get('cut_text'):
                 status_text = cutText(status_text)
-                print(status_text)
             if len(status_text) > 280: 
                 continue
             existing.update(album.url, -1) # place holder
