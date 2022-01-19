@@ -196,7 +196,7 @@ def cutText(text, cut_text_retain_link, splitter):
         else:
             return last_good + suffix
     result += text.split(splitter)[-1]
-    if lenOk(result):
+    if lenOk(result, False):
         return text
     else:
         return last_good + suffix
