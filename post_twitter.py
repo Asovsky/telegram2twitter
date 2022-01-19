@@ -61,7 +61,7 @@ def getLinkReplace(url, album, item, all_text):
             return ''
 
     title = export_to_telegraph.getTitle(url)
-    if title in ['No Title', '[no-title]'] or matchKey(url, ['facebook', 'twitter', 'tumblr']):
+    if title in ['No Title', '[no-title]'] or matchKey(url, ['facebook', 'twitter', 'tumblr', 'reddit', 'instagram']):
         return '\n\n' + url
     return '\n\n【%s】 %s' % (title, url)
 
