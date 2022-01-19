@@ -14,7 +14,7 @@ import cached_url
 import os
 import export_to_telegraph
 import sys
-from telegram_util import isCN, removeOldFiles, matchKey
+from telegram_util import isCN, removeOldFiles, matchKey, isUrl
 from moviepy.editor import VideoFileClip
 
 with open('credential') as f:
@@ -178,23 +178,28 @@ async def post_twitter(channel, post, album, status_text):
             print('send twitter status failed:', str(e), album.url)
         
 
-def lenOk(text):
-    return sum([2 if isCN(char) else 1 for char in text]) <= 280
+def lenOk(text, has_link):
+    return sum([2 if isCN(char) else 1 for char in text]) <= 280 - 24 * has_link
 
-def cutText(text):
+def cutText(text, cut_text_retain_link, splitter):
+    if not text:
+        return ''
     result = ''
     last_good = text
-    for substr in text.split('。')[:-1]:
-        result += substr + '。'
-        if lenOk(result):
+    suffix = ''
+    if cut_text_retain_link and isUrl(text.split()[-1]):
+        suffix = ' ' + text.split()[-1]
+    for substr in text.split(splitter)[:-1]:
+        result += substr + splitter
+        if lenOk(result, suffix):
             last_good = result
         else:
-            return last_good
-    result += text.split('。')[-1]
+            return last_good + suffix
+    result += text.split(splitter)[-1]
     if lenOk(result):
         return text
     else:
-        return last_good
+        return last_good + suffix
 
 async def runImp():
     removeOldFiles('tmp', day=0.1)
@@ -204,7 +209,11 @@ async def runImp():
                 continue
             status_text = getText(album, post) or album.url
             if credential['channels'][channel].get('cut_text'):
-                status_text = cutText(status_text)
+                print('before cut', status_text)
+                status_text = cutText(status_text, 
+                    credential['channels'][channel].get('cut_text_retain_link'),
+                    credential['channels'][channel].get('cut_text_splitter'))
+                print('after cut', status_text)
             if len(status_text) > 280: 
                 continue
             existing.update(album.url, -1) # place holder
