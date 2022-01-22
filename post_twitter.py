@@ -20,7 +20,7 @@ from moviepy.editor import VideoFileClip
 with open('credential') as f:
     credential = yaml.load(f, Loader=yaml.FullLoader)
 
-existing = plain_db.load('existing')
+existing = plain_db.loadLargeDB('existing', isIntValue=True)
 
 Day = 24 * 60 * 60
 
