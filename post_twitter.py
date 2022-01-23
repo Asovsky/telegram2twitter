@@ -228,6 +228,7 @@ async def runImp():
 async def run():
     await runImp()
     if 'client' in client_cache:
+        # entity = await client_cache['client'].get_entity('read_2022')
         await client_cache['client'].disconnect()
         
 if __name__ == '__main__':
