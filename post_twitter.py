@@ -183,7 +183,7 @@ async def post_twitter(channel, post, album, status_text):
         
 
 def lenOk(text, has_link):
-    return sum([2 if isCN(char) else 1 for char in text]) <= 280 - 24 * has_link
+    return sum([1 if ord(text) <= 256 else 2 for char in text]) <= 280 - 24 * has_link
 
 def cutText(text, cut_text_retain_link, splitter):
     if not text:
