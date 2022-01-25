@@ -213,9 +213,11 @@ async def runImp():
                 continue
             status_text = getText(album, post) or album.url
             if credential['channels'][channel].get('cut_text'):
+                print('before cut', status_text)
                 status_text = cutText(status_text, 
                     credential['channels'][channel].get('cut_text_retain_link'),
                     credential['channels'][channel].get('cut_text_splitter'))
+                print('after cut', status_text)
             if len(status_text) > 280: 
                 continue
             existing.update(album.url, -1) # place holder
