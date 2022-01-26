@@ -101,7 +101,8 @@ async def getMediaSingle(api, post):
     try:
         return api.media_upload(fn).media_id
     except Exception as e:
-        print('media upload failed:', str(e), str(post))
+        if 'mp4' not in str(post):
+            print('media upload failed:', str(e), str(post))
 
 async def getMedia(api, posts):
     result = []
