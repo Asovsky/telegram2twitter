@@ -63,7 +63,7 @@ def getLinkReplace(url, album, item, all_text):
         except:
             return ''
 
-    print(2)
+    print(2, item.text.strip(), all_text)
     
     if matchKey(all_text, ['： ' + item.text.strip(), ': ' + item.text.strip()]):
         return url
@@ -80,8 +80,10 @@ def getLinkReplace(url, album, item, all_text):
     print(5)
     if matchKey(title, ['Tele_gram', 'Telegram: Contact']): 
         return ''
+    print(6)
     if url.startswith('https://t.me') and len(url.split('/')) == 4:
         return ''
+    print(7)
     return '\n\n【%s】 %s' % (title, url)
 
 def getText(album, post):
@@ -238,12 +240,12 @@ async def runImp():
                 # print('after cut', status_text)
             if len(status_text) > 280: 
                 continue
-            existing.update(album.url, -1) # place holder
-            result = await post_twitter(channel, post, album, status_text)
-            if not result:
-                continue
-            existing.update(album.url, result.id)
-            return # only send one item every 10 minute
+            # existing.update(album.url, -1) # place holder
+            # result = await post_twitter(channel, post, album, status_text)
+            # if not result:
+            #     continue
+            # existing.update(album.url, result.id)
+            # return # only send one item every 10 minute
 
 async def run():
     await runImp()
