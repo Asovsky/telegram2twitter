@@ -48,13 +48,10 @@ def getPosts(channel):
             print('post_2_album failed', post.getKey(), str(e))
 
 def getLinkReplace(url, album, item, all_text):
-    print(url, item)
     if item.text.strip() == 'source':
         if 'douban.com/note/' in url and matchKey(all_text, ['telegra.ph', 'douban.com/note/']):
             return ''
         return '\n\n' + url + '\n' * len(item.find_all('br'))
-
-    print(1)
 
     if 'telegra.ph' in url:
         soup = BeautifulSoup(cached_url.get(url, force_cache=True), 'html.parser')
@@ -62,34 +59,25 @@ def getLinkReplace(url, album, item, all_text):
             url = soup.find('address').find('a')['href']
         except:
             return ''
-
-    print(2, item.text.strip(), all_text)
     
     if matchKey(all_text, ['： ' + item.text.strip(), ': ' + item.text.strip()]):
         return url
 
-    print(3)
     if matchKey(all_text, ['：' + item.text.strip(), ':' + item.text.strip()]):
         return ' ' + url
-    print(4)
 
     title = export_to_telegraph.getTitle(url)
     if title in ['No Title', '[no-title]'] or matchKey(url, ['facebook', 'twitter', 
         'tumblr', 'reddit', 'instagram', 'huangxueqin-is-known-to-be-officially-held-at-guangzhou-no']):
         return '\n\n' + url
-    print(5)
     if matchKey(title, ['Tele_gram', 'Telegram: Contact']): 
         return ''
-    print(6)
     if url.startswith('https://t.me') and len(url.split('/')) == 4:
         return ''
-    print(7)
     return '\n\n【%s】 %s' % (title, url)
 
 def getText(album, post):
     soup = BeautifulSoup(album.cap_html, 'html.parser')
-    print(str(soup))
-    print('\n')
     for item in soup.find_all('a'):
         if item.get('href'):
             item.replace_with(getLinkReplace(item.get('href'), album, item, soup.text))
@@ -240,12 +228,12 @@ async def runImp():
                 # print('after cut', status_text)
             if len(status_text) > 280: 
                 continue
-            # existing.update(album.url, -1) # place holder
-            # result = await post_twitter(channel, post, album, status_text)
-            # if not result:
-            #     continue
-            # existing.update(album.url, result.id)
-            # return # only send one item every 10 minute
+            existing.update(album.url, -1) # place holder
+            result = await post_twitter(channel, post, album, status_text)
+            if not result:
+                continue
+            existing.update(album.url, result.id)
+            return # only send one item every 10 minute
 
 async def run():
     await runImp()
