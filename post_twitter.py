@@ -48,10 +48,13 @@ def getPosts(channel):
             print('post_2_album failed', post.getKey(), str(e))
 
 def getLinkReplace(url, album, item, all_text):
+    print(url, item)
     if item.text.strip() == 'source':
         if 'douban.com/note/' in url and matchKey(all_text, ['telegra.ph', 'douban.com/note/']):
             return ''
         return '\n\n' + url + '\n' * len(item.find_all('br'))
+
+    print(1)
 
     if 'telegra.ph' in url:
         soup = BeautifulSoup(cached_url.get(url, force_cache=True), 'html.parser')
@@ -59,26 +62,32 @@ def getLinkReplace(url, album, item, all_text):
             url = soup.find('address').find('a')['href']
         except:
             return ''
+
+    print(2)
     
     if matchKey(all_text, ['： ' + item.text.strip(), ': ' + item.text.strip()]):
         return url
 
+    print(3)
     if matchKey(all_text, ['：' + item.text.strip(), ':' + item.text.strip()]):
         return ' ' + url
+    print(4)
 
     title = export_to_telegraph.getTitle(url)
     if title in ['No Title', '[no-title]'] or matchKey(url, ['facebook', 'twitter', 
         'tumblr', 'reddit', 'instagram', 'huangxueqin-is-known-to-be-officially-held-at-guangzhou-no']):
         return '\n\n' + url
+    print(5)
     if matchKey(title, ['Tele_gram', 'Telegram: Contact']): 
         return ''
-    print(url)
     if url.startswith('https://t.me') and len(url.split('/')) == 4:
         return ''
     return '\n\n【%s】 %s' % (title, url)
 
 def getText(album, post):
     soup = BeautifulSoup(album.cap_html, 'html.parser')
+    print(str(soup))
+    print('\n')
     for item in soup.find_all('a'):
         if item.get('href'):
             item.replace_with(getLinkReplace(item.get('href'), album, item, soup.text))
