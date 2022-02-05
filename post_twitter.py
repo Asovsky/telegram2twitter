@@ -72,6 +72,7 @@ def getLinkReplace(url, album, item, all_text):
         return '\n\n' + url
     if matchKey(title, ['Tele_gram', 'Telegram: Contact']): 
         return ''
+    print(url)
     if url.startswith('https://t.me') and len(url.split('/')) == 4:
         return ''
     return '\n\n【%s】 %s' % (title, url)
