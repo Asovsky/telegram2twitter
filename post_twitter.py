@@ -213,11 +213,17 @@ def cutText(text, cut_text_retain_link, splitter):
     else:
         return last_good + suffix
 
+def too_close(channel):
+    if not credential['channels'][channel].get('interval'):
+        return False
+    api = getTwitterApi(channel)
+    
+
 async def runImp():
     removeOldFiles('tmp', day=0.1)
     for channel in credential['channels']:
-        #todo
-        credential['channels'][channel].get('interval')
+        if too_close(channel):
+            continue
         for album, post in getPosts(channel):
             if existing.get(album.url):
                 continue
