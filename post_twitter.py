@@ -215,10 +215,11 @@ def cutText(text, cut_text_retain_link, splitter):
 
 def tooClose(channel):
     user = credential['channels'][channel]['twitter_user']
-    if not credential['twitter_users'][user].get('interval'):
-        return False
+    # if not credential['twitter_users'][user].get('interval'):
+    #     return False
     api = getTwitterApi(channel)
-    api.user_timeline(user, count=1)
+    print(api.user_timeline(user, count=1)[0].created_at)
+    return False
 
 
 async def runImp():
