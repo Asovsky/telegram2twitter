@@ -216,6 +216,8 @@ def cutText(text, cut_text_retain_link, splitter):
 async def runImp():
     removeOldFiles('tmp', day=0.1)
     for channel in credential['channels']:
+        #todo
+        credential['channels'][channel].get('interval')
         for album, post in getPosts(channel):
             if existing.get(album.url):
                 continue
