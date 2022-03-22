@@ -218,7 +218,7 @@ def tooClose(channel):
     # if not credential['twitter_users'][user].get('interval'):
     #     return False
     api = getTwitterApi(channel)
-    print(api.user_timeline(user, count=1)[0].created_at)
+    print(api.user_timeline(user_id=user, count=1)[0])
     return False
 
 
