@@ -239,9 +239,10 @@ def tooClose(channel):
     if elapse > 60 * 60 * 5:
         return False
     waiting_count = getWaitingCount(user)
-    # print('waiting_count', user, waiting_count)
-    # print('elapse_min', int(elapse / 60))
-    # print('tooClose', elapse * waiting_count ** 2 < 60 * 60 * 500)
+    print('waiting_count', user, waiting_count)
+    print('elapse_min', int(elapse / 60))
+    print('tooClose', elapse * waiting_count ** 2 < 60 * 60 * 500)
+    print('to_wait_min', int(60 * 60 * 500 / waiting_count ** 2 / 60))
     return elapse * waiting_count ** 2 < 60 * 60 * 500
 
 async def runImp():
