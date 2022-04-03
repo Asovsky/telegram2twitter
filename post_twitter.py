@@ -239,11 +239,11 @@ def tooClose(channel):
     if elapse > 60 * 60 * 5:
         return False
     waiting_count = getWaitingCount(user)
+    to_wait = min(60 * 60 * 1000 / waiting_count ** 2, 60 * 60 * 30 / waiting_count)
     print('waiting_count', user, waiting_count)
     print('elapse_min', int(elapse / 60))
-    print('tooClose', elapse * waiting_count ** 2 < 60 * 60 * 500)
-    print('to_wait_min', int(60 * 60 * 500 / waiting_count ** 2 / 60))
-    return elapse * waiting_count ** 2 < 60 * 60 * 500
+    print('to_wait_min', int(to_wait / 60))
+    return elapse < to_wait
 
 async def runImp():
     removeOldFiles('tmp', day=0.1)
