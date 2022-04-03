@@ -24,10 +24,10 @@ existing = plain_db.loadLargeDB('existing', isIntValue=True)
 
 Day = 24 * 60 * 60
 
-def getCutoffTime(channel, posts):
+def getCutoffTime(channel):
     return time.time() - credential['channels'][channel]['padding_days'] * Day
 
-def getPosts(channel):
+def getRawPosts(channel):
     start = time.time()
     result = []
     posts = webgram.getPosts(channel)[1:]
@@ -38,7 +38,11 @@ def getPosts(channel):
         posts = webgram.getPosts(channel, posts[0].post_id, 
             direction='before')[1:]
         result += posts
-    cutoff_time = getCutoffTime(channel, result)
+    return result
+
+def getPosts(channel):
+    result = getRawPosts(channel)
+    cutoff_time = getCutoffTime(channel)
     for post in result:
         if post.time > cutoff_time:
             continue
@@ -213,13 +217,32 @@ def cutText(text, cut_text_retain_link, splitter):
     else:
         return last_good + suffix
 
+def getWaitingCount(user):
+    count = 0
+    for channel in credential['channels']:
+        if credential['channels'][channel]['twitter_user'] != user:
+            continue
+        for post in getRawPosts(channel):
+            if existing.get('https://t.me/' + post.getKey()):
+                continue
+            status_text = post.text and post.text.text or ''
+            if sum([1 if ord(char) <= 256 else 2 for char in status_text]) + 19 <= 280:
+                count += 1
+    return count
+
 def tooClose(channel):
     user = credential['channels'][channel]['twitter_user']
-    if not credential['twitter_users'][user].get('interval'):
-        return False
     api = getTwitterApi(channel)
     elapse = time.time() - api.user_timeline(user_id=user, count=1)[0].created_at.timestamp()
-    return credential['twitter_users'][user].get('interval') * 60 > elapse
+    if elapse < 60:
+        return True
+    if elapse > 60 * 60 * 5:
+        return False
+    waiting_count = getWaitingCount(user)
+    # print('waiting_count', user, waiting_count)
+    # print('elapse_min', int(elapse / 60))
+    # print('tooClose', elapse * waiting_count ** 2 < 60 * 60 * 500)
+    return elapse * waiting_count ** 2 < 60 * 60 * 500
 
 async def runImp():
     removeOldFiles('tmp', day=0.1)
