@@ -16,6 +16,7 @@ import export_to_telegraph
 import sys
 from telegram_util import isCN, removeOldFiles, matchKey, isUrl
 from moviepy.editor import VideoFileClip
+import random
 
 with open('credential') as f:
     credential = yaml.load(f, Loader=yaml.FullLoader)
@@ -38,6 +39,7 @@ def getRawPosts(channel):
         posts = webgram.getPosts(channel, posts[0].post_id, 
             direction='before')[1:]
         result += posts
+    random.shuffle(result)
     return result
 
 def getPosts(channel):
