@@ -241,6 +241,8 @@ def tooClose(channel):
     if elapse > 60 * 60 * 5:
         return False
     waiting_count = getWaitingCount(user)
+    if waiting_count == 0:
+        return False
     to_wait = min(60 * 60 * 1000 / waiting_count ** 2, 60 * 60 * 30 / waiting_count)
     # print('waiting_count', user, waiting_count)
     # print('elapse_min', int(elapse / 60))
