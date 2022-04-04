@@ -227,6 +227,9 @@ def getWaitingCount(user):
         for post in getRawPosts(channel):
             if existing.get('https://t.me/' + post.getKey()):
                 continue
+            if credential['channels'][channel].get('cut_text'):
+                count += 1
+                continue
             status_text = post.text and post.text.text or ''
             if sum([1 if ord(char) <= 256 else 2 for char in status_text]) + 19 <= 280:
                 count += 1
@@ -242,7 +245,7 @@ def tooClose(channel):
         return False
     waiting_count = getWaitingCount(user)
     if waiting_count == 0:
-        return False
+        return True
     to_wait = min(60 * 60 * 1000 / waiting_count ** 2, 60 * 60 * 30 / waiting_count)
     # print('waiting_count', user, waiting_count)
     # print('elapse_min', int(elapse / 60))
