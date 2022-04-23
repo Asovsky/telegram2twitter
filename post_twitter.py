@@ -233,6 +233,8 @@ def getWaitingCount(user):
             status_text = post.text and post.text.text or ''
             if sum([1 if ord(char) <= 256 else 2 for char in status_text]) + 19 <= 280:
                 count += 1
+                if 'twitter_translate' in post.getKey():
+                    print(post.getKey())
     return count
 
 def tooClose(channel):
