@@ -269,6 +269,8 @@ async def runImp():
                 # print('after cut', status_text)
             if len(status_text) > 280: 
                 continue
+            if matchKey(status_text, ['【读者调查】感谢大家对本频道的支持']):
+                continue
             existing.update(album.url, -1) # place holder
             result = await post_twitter(channel, post, album, status_text)
             if not result:
