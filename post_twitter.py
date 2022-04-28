@@ -255,8 +255,10 @@ def tooClose(channel):
 async def runImp():
     removeOldFiles('tmp', day=0.1)
     for channel in credential['channels']:
+        # print(channel)
         if tooClose(channel):
             continue
+        # print(channel, 'start')
         for album, post in getPosts(channel):
             if existing.get(album.url):
                 continue
