@@ -39,7 +39,7 @@ def getRawPosts(channel):
         posts = webgram.getPosts(channel, posts[0].post_id, 
             direction='before')[1:]
         result += posts
-    if random.random() > 1: # 0.1:
+    if random.random() > 0.2:
         random.shuffle(result)
     else:
         result = result[::-1]
