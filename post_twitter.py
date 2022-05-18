@@ -241,7 +241,11 @@ def getWaitingCount(user):
 def tooClose(channel):
     user = credential['channels'][channel]['twitter_user']
     api = getTwitterApi(channel)
-    elapse = time.time() - api.user_timeline(user_id=user, count=1)[0].created_at.timestamp()
+    try:
+        elapse = time.time() - api.user_timeline(user_id=user, count=1)[0].created_at.timestamp()
+    except Exception as e:
+        print('linked twitter for channel fetch fail', e)
+        return True
     if elapse < 60:
         return True
     if elapse > 60 * 60 * 5:
