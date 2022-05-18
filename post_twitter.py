@@ -244,7 +244,7 @@ def tooClose(channel):
     try:
         elapse = time.time() - api.user_timeline(user_id=user, count=1)[0].created_at.timestamp()
     except Exception as e:
-        print('linked twitter for channel fetch fail', e)
+        print('linked twitter for channel fetch fail', channel, user, e)
         return True
     if elapse < 60:
         return True
