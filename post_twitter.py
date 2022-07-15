@@ -271,7 +271,10 @@ async def runImp():
         for album, post in getPosts(channel):
             if existing.get(album.url):
                 continue
-            status_text = getText(album, post) or album.url
+            # status_text = getText(album, post) or album.url
+            status_text = getText(album, post)
+            if not status_text:
+                continue
             if credential['channels'][channel].get('cut_text'):
                 # print('before cut', status_text)
                 status_text = cutText(status_text, 
