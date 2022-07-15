@@ -70,20 +70,20 @@ def getLinkReplace(url, album, item, all_text):
             return ''
     
     if matchKey(all_text, ['： ' + item.text.strip(), ': ' + item.text.strip()]):
-        return url
+        return url  + '\n' * len(item.find_all('br'))
 
     if matchKey(all_text, ['：' + item.text.strip(), ':' + item.text.strip()]):
-        return ' ' + url
+        return ' ' + url + '\n' * len(item.find_all('br'))
 
     title = export_to_telegraph.getTitle(url)
     if title in ['No Title', '[no-title]'] or matchKey(url, ['facebook', 'twitter', 
         'tumblr', 'reddit', 'instagram', 'huangxueqin-is-known-to-be-officially-held-at-guangzhou-no']):
-        return '\n\n' + url
+        return '\n\n' + url + '\n' * len(item.find_all('br'))
     if matchKey(title, ['Tele_gram', 'Telegram: Contact']): 
         return ''
     if url.startswith('https://t.me') and len(url.split('/')) == 4:
         return ''
-    return '\n\n【%s】 %s' % (title, url)
+    return '\n\n【%s】 %s' % (title, url) + '\n' * len(item.find_all('br'))
 
 def getText(album, post):
     soup = BeautifulSoup(album.cap_html, 'html.parser')
