@@ -259,6 +259,12 @@ def tooClose(channel):
     # print('to_wait_min', int(to_wait / 60))
     return elapse < to_wait
 
+async def getText(channel, post):
+    client = await getTelethonClient()
+    entity = await getChannel(client, channel)
+    post = await client.get_message(entity, id=post.post_id)
+    
+
 async def runImp():
     removeOldFiles('tmp', day=0.1)
     channels = list(credential['channels'].keys())
@@ -275,6 +281,7 @@ async def runImp():
             status_text = getText(album, post)
             if not status_text:
                 continue
+            status_text = getText()
             if credential['channels'][channel].get('cut_text'):
                 # print('before cut', status_text)
                 status_text = cutText(status_text, 
