@@ -214,12 +214,13 @@ async def getText(channel, post):
     for entity in post.entities:
         origin_text = ''.join(text[entity.offset:entity.offset + entity.length])
         text[entity.offset] = entity.url
-        if entity.offset + entity.length = len(text) and origin_text == 'source':
-            
+        if entity.offset + entity.length == len(text) and origin_text == 'source':
+            text[entity.offset] = '\n\n' + text[entity.offset]
         for index in range(entity.offset + 1, entity.offset + entity.length):
             text[index] = ''
     text = ''.join(text)
-
+    text = '\n'.join([line.strip() for line in text.split('\n')]).strip()
+    return text
 
 async def runImp():
     removeOldFiles('tmp', day=0.1)
