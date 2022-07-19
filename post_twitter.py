@@ -56,47 +56,6 @@ def getPosts(channel):
         except Exception as e:
             print('post_2_album failed', post.getKey(), str(e))
 
-def getLinkReplace(url, album, item, all_text):
-    if item.text.strip() == 'source':
-        if 'douban.com/note/' in url and matchKey(all_text, ['telegra.ph', 'douban.com/note/']):
-            return ''
-        return '\n\n' + url + '\n' * len(item.find_all('br'))
-
-    if 'telegra.ph' in url:
-        soup = BeautifulSoup(cached_url.get(url, force_cache=True), 'html.parser')
-        try:
-            url = soup.find('address').find('a')['href']
-        except:
-            return ''
-    
-    if matchKey(all_text, ['： ' + item.text.strip(), ': ' + item.text.strip()]):
-        return url  + '\n' * len(item.find_all('br'))
-
-    if matchKey(all_text, ['：' + item.text.strip(), ':' + item.text.strip()]):
-        return ' ' + url + '\n' * len(item.find_all('br'))
-
-    title = export_to_telegraph.getTitle(url)
-    if title in ['No Title', '[no-title]'] or matchKey(url, ['facebook', 'twitter', 
-        'tumblr', 'reddit', 'instagram', 'huangxueqin-is-known-to-be-officially-held-at-guangzhou-no']):
-        return '\n\n' + url + '\n' * len(item.find_all('br'))
-    if matchKey(title, ['Tele_gram', 'Telegram: Contact']): 
-        return ''
-    if url.startswith('https://t.me') and len(url.split('/')) == 4:
-        return ''
-    return '\n\n【%s】 %s' % (title, url) + '\n' * len(item.find_all('br'))
-
-def getText(album, post):
-    soup = BeautifulSoup(album.cap_html, 'html.parser')
-    for item in soup.find_all('a'):
-        if item.get('href'):
-            item.replace_with(getLinkReplace(item.get('href'), album, item, soup.text))
-    for item in soup.find_all('br'):
-        item.replace_with('\n')
-    text = soup.text.strip()
-    if post.file:
-        text += '\n\n' + album.url
-    return text
-
 async def getMediaSingle(api, post):
     fn = await post.download_media('tmp/')
     if not fn:
@@ -262,8 +221,8 @@ def tooClose(channel):
 async def getText(channel, post):
     client = await getTelethonClient()
     entity = await getChannel(client, channel)
-    post = await client.get_message(entity, id=post.post_id)
-    
+    post = await client.get_messages(entity, ids=post.post_id)
+    print(post)
 
 async def runImp():
     removeOldFiles('tmp', day=0.1)
@@ -277,11 +236,8 @@ async def runImp():
         for album, post in getPosts(channel):
             if existing.get(album.url):
                 continue
-            # status_text = getText(album, post) or album.url
-            status_text = getText(album, post)
-            if not status_text:
-                continue
-            status_text = getText()
+            status_text = await getText(channel, post)
+            return
             if credential['channels'][channel].get('cut_text'):
                 # print('before cut', status_text)
                 status_text = cutText(status_text, 
