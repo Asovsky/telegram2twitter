@@ -210,7 +210,16 @@ async def getText(channel, post):
     client = await getTelethonClient()
     entity = await getChannel(client, channel)
     post = await client.get_messages(entity, ids=post.post_id)
-    print(post)
+    text = list(post.message)
+    for entity in post.entities:
+        origin_text = ''.join(text[entity.offset:entity.offset + entity.length])
+        text[entity.offset] = entity.url
+        if entity.offset + entity.length = len(text) and origin_text == 'source':
+            
+        for index in range(entity.offset + 1, entity.offset + entity.length):
+            text[index] = ''
+    text = ''.join(text)
+
 
 async def runImp():
     removeOldFiles('tmp', day=0.1)
