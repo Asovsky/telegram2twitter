@@ -60,17 +60,10 @@ async def getMediaSingle(api, post):
     fn = await post.download_media('tmp/')
     if not fn:
         return
-    if fn.endswith('.mp4'):
-        clip = VideoFileClip(fn)
-        if clip.duration > 30: # twitter api limit video length limit, web/app limit is 140
-            return
-    # if os.stat(fn).st_size >= 4883 * 1024: # twitter limit
-    #     return
     try:
         return api.media_upload(fn).media_id
     except Exception as e:
-        if 'mp4' not in str(post):
-            print('media upload failed:', str(e), str(post))
+        print('media upload failed:', str(e), str(post))
 
 async def getMedia(api, posts):
     result = []
@@ -81,11 +74,6 @@ async def getMedia(api, posts):
         if len(result) >= 4:
             return result
     return result
-
-# def matchLanguage(channel, status_text):
-#     if not credential['channels'][channel].get('chinese_only'):
-#         return True
-#     return isCN(status_text)
 
 twitter_api_cache = {}
 def getTwitterApi(channel):
@@ -229,10 +217,8 @@ async def runImp():
     channels = list(credential['channels'].keys())
     random.shuffle(channels)
     for channel in channels:
-        # print(channel)
         if tooClose(channel):
             continue
-        # print(channel, 'start')
         for album, post in getPosts(channel):
             if existing.get(album.url):
                 continue
@@ -258,7 +244,6 @@ async def runImp():
 async def run():
     await runImp()
     if 'client' in client_cache:
-        # entity = await client_cache['client'].get_entity('read_2022')
         await client_cache['client'].disconnect()
         
 if __name__ == '__main__':
