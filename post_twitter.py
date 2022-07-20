@@ -8,7 +8,7 @@ import time
 import plain_db
 import webgram
 import post_2_album
-from telegram_util import removeOldFiles
+from telegram_util import removeOldFiles, matchKey
 import random
 from bs4 import BeautifulSoup
 import cached_url
@@ -115,7 +115,7 @@ def cutText(text, splitter='。'):
         else:
             return last_good
     result += text.split(splitter)[-1]
-    if lenOk(result, False):
+    if lenOk(result):
         return text
     else:
         return last_good
