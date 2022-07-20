@@ -169,7 +169,7 @@ def getLinkReplace(url):
         return url
 
 async def getText(channel, post):
-    text, post = await telepost.getRawText(channel, post.id)
+    text, post = await telepost.getRawText(channel, post.post_id)
     for entity in post.entities or []:
         origin_text = ''.join(text[entity.offset:entity.offset + entity.length])
         to_replace = entity.url if hasattr(entity, 'url') else origin_text
