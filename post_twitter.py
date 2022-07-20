@@ -197,7 +197,12 @@ def hasOldPost(posts):
         if post.time < time.time() - 3 * Day:
             return True
     return False
-    
+
+def sortPosts(posts):
+    posts_with_ts = [(p[1].time, p) for p in posts]
+    posts_with_ts.sort()
+    return [post_with_ts[1] for post_with_ts in posts_with_ts]
+
 async def runImp():
     removeOldFiles('tmp', day=0.1)
     channels = list(credential['channels'].keys())
@@ -206,6 +211,8 @@ async def runImp():
         posts = getPosts(channel)
         if not hasOldPost(posts) and tooClose(channel):
             continue
+        if hasOldPost(posts):
+            posts = sortPosts(posts)
         for album, post in posts:
             if existing.get(album.url):
                 continue
