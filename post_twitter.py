@@ -9,14 +9,10 @@ import time
 import plain_db
 import webgram
 import post_2_album
+from telegram_util import removeOldFiles
+import random
 from bs4 import BeautifulSoup
 import cached_url
-import os
-import export_to_telegraph
-import sys
-from telegram_util import isCN, removeOldFiles, matchKey, isUrl
-from moviepy.editor import VideoFileClip
-import random
 
 with open('credential') as f:
     credential = yaml.load(f, Loader=yaml.FullLoader)
@@ -54,23 +50,25 @@ def getPosts(channel):
         try:
             yield post_2_album.get('https://t.me/' + post.getKey()), post
         except Exception as e:
-            print('post_2_album failed', post.getKey(), str(e))
+            print('post_twitter post_2_album failed', post.getKey(), str(e))
 
 async def getMediaSingle(api, post):
     fn = await post.download_media('tmp/')
     if not fn:
         return
     try:
-        return api.media_upload(fn).media_id
+        return api.media_upload(fn).media_id, fn
     except Exception as e:
-        print('media upload failed:', str(e), str(post))
+        print('post_twitter media upload failed:', str(e), str(post))
 
 async def getMedia(api, posts):
     result = []
     for post in posts:
         media = await getMediaSingle(api, post)
         if media:
-            result.append(media)
+            if media[1].endswith('.mp4'): # may need to revisit
+                return [media[0]]
+            result.append(media[0])
         if len(result) >= 4:
             return result
     return result
@@ -136,38 +134,33 @@ async def post_twitter(channel, post, album, status_text):
     if post.hasVideo() or album.video or album.imgs:
         media_ids = await getMediaIds(api, channel, post, album)
         if not media_ids:
-            if 'debug' in sys.argv:
-                print('all media upload failed: ', album.url)
             return
     try:
         return api.update_status(status=status_text, media_ids=media_ids)
     except Exception as e:
         if 'Tweet needs to be a bit shorter.' not in str(e):
-            print('send twitter status failed:', str(e), album.url)
+            print('post_twitter send twitter status failed:', str(e), album.url)
         
 
-def lenOk(text, has_link):
-    return sum([1 if ord(char) <= 256 else 2 for char in text]) <= 280 - 24 * has_link
+def lenOk(text):
+    return sum([1 if ord(char) <= 256 else 2 for char in text]) <= 280
 
-def cutText(text, cut_text_retain_link, splitter):
+def cutText(text, splitter='。'):
     if not text:
         return ''
     result = ''
     last_good = text
-    suffix = ''
-    if cut_text_retain_link and isUrl(text.split()[-1]):
-        suffix = ' ' + text.split()[-1]
     for substr in text.split(splitter)[:-1]:
         result += substr + splitter
-        if lenOk(result, not not suffix):
+        if lenOk(result):
             last_good = result
         else:
-            return last_good + suffix
+            return last_good
     result += text.split(splitter)[-1]
     if lenOk(result, False):
         return text
     else:
-        return last_good + suffix
+        return last_good
 
 def getWaitingCount(user):
     count = 0
@@ -181,6 +174,8 @@ def getWaitingCount(user):
                 count += 1
                 continue
             status_text = post.text and post.text.text or ''
+            if not status_text:
+                continue
             if sum([1 if ord(char) <= 256 else 2 for char in status_text]) + 19 <= 280:
                 count += 1
     return count
@@ -191,7 +186,7 @@ def tooClose(channel):
     try:
         elapse = time.time() - api.user_timeline(user_id=user, count=1)[0].created_at.timestamp()
     except Exception as e:
-        print('linked twitter for channel fetch fail', channel, user, e)
+        print('post_twitter linked twitter for channel fetch fail', channel, user, e)
         return True
     if elapse < 60:
         return True
@@ -201,26 +196,56 @@ def tooClose(channel):
     if waiting_count == 0:
         return True
     to_wait = min(60 * 60 * 1000 / waiting_count ** 2, 60 * 60 * 30 / waiting_count)
-    # print('waiting_count', user, waiting_count)
-    # print('elapse_min', int(elapse / 60))
-    # print('to_wait_min', int(to_wait / 60))
     return elapse < to_wait
+
+def getLinkReplace(url):
+    if 'telegra.ph' not in url:
+        return url
+    if not url.startswith('http'):
+        url = 'https://' + url
+    soup = BeautifulSoup(cached_url.get(url, force_cache=True), 'html.parser')
+    try:
+        return soup.find('address').find('a')['href']
+    except:
+        print('post_twitter can not find link replace', url)
+        return url
+
+def addAddtionalPlaceholder(text):
+    placeholder_count = 0
+    new_text = text[:]
+    for index, c in enumerate(text):
+        if ord(c) > 256 * 256:
+            new_text[index + placeholder_count: index + placeholder_count + 1] = [c, '']
+            placeholder_count += 1
+    return new_text 
 
 async def getText(channel, post):
     client = await getTelethonClient()
     entity = await getChannel(client, channel)
     post = await client.get_messages(entity, ids=post.post_id)
+    if not post.message:
+        return ''
     text = list(post.message)
-    for entity in post.entities:
+    text = addAddtionalPlaceholder(text)
+    for entity in post.entities or []:
         origin_text = ''.join(text[entity.offset:entity.offset + entity.length])
-        text[entity.offset] = entity.url
+        to_replace = entity.url if hasattr(entity, 'url') else origin_text
+        to_replace = getLinkReplace(to_replace)
+        text[entity.offset] = to_replace
         if entity.offset + entity.length == len(text) and origin_text == 'source':
-            text[entity.offset] = '\n\n' + text[entity.offset]
+            text[entity.offset] = '\n\n' + to_replace
         for index in range(entity.offset + 1, entity.offset + entity.length):
             text[index] = ''
     text = ''.join(text)
     text = '\n'.join([line.strip() for line in text.split('\n')]).strip()
     return text
+
+def addSuffix(status_text, post, album):
+    if post.file:
+        return status_text + '\n\n' + album.url
+    if not status_text:
+        return album.url
+    return status_text
 
 async def runImp():
     removeOldFiles('tmp', day=0.1)
@@ -230,26 +255,22 @@ async def runImp():
         if tooClose(channel):
             continue
         for album, post in getPosts(channel):
+            status_text = await getText(channel, post) # testing
+            status_text = addSuffix(status_text, post, album)
+            continue # testing
             if existing.get(album.url):
                 continue
             status_text = await getText(channel, post)
-            return
             if credential['channels'][channel].get('cut_text'):
-                # print('before cut', status_text)
-                status_text = cutText(status_text, 
-                    credential['channels'][channel].get('cut_text_retain_link'),
-                    credential['channels'][channel].get('cut_text_splitter'))
-                # print('after cut', status_text)
-            if len(status_text) > 280: 
-                continue
-            if matchKey(status_text, ['【读者调查】感谢大家对本频道的支持']):
+                status_text = cutText(status_text)
+            if len(status_text) > 500: 
                 continue
             existing.update(album.url, -1) # place holder
             result = await post_twitter(channel, post, album, status_text)
             if not result:
                 continue
             existing.update(album.url, result.id)
-            return # only send one item every 10 minute
+            return # only send one item for each run
 
 async def run():
     await runImp()
