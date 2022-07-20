@@ -190,14 +190,23 @@ def addSuffix(status_text, post, album):
         return album.url
     return status_text
 
+def hasOldPost(posts):
+    for album, post in posts:
+        if existing.get(album.url):
+            continue
+        if post.time < time.time() - 3 * Day:
+            return True
+    return False
+    
 async def runImp():
     removeOldFiles('tmp', day=0.1)
     channels = list(credential['channels'].keys())
     random.shuffle(channels)
     for channel in channels:
-        if tooClose(channel):
+        posts = getPosts(channel)
+        if not hasOldPost(posts) and tooClose(channel):
             continue
-        for album, post in getPosts(channel):
+        for album, post in posts:
             if existing.get(album.url):
                 continue
             status_text = await getText(channel, post)
