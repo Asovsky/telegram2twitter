@@ -82,7 +82,7 @@ def getTwitterApi(channel):
     return api
 
 async def getMediaIds(api, channel, post, album):
-    fns = await telepost.getImagesV2(channel, post.id)
+    fns = await telepost.getImages(channel, post.post_id, post.getImgNumber())
     media_ids = await getMedia(api, fns, post)
     return list(media_ids)
 
