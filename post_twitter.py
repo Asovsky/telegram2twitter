@@ -255,12 +255,10 @@ async def runImp():
         if tooClose(channel):
             continue
         for album, post in getPosts(channel):
-            status_text = await getText(channel, post) # testing
-            status_text = addSuffix(status_text, post, album)
-            continue # testing
             if existing.get(album.url):
                 continue
             status_text = await getText(channel, post)
+            status_text = addSuffix(status_text, post, album)
             if credential['channels'][channel].get('cut_text'):
                 status_text = cutText(status_text)
             if len(status_text) > 500: 
