@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from telethon import TelegramClient
 import asyncio
 import tweepy
 import yaml
@@ -13,6 +12,7 @@ from telegram_util import removeOldFiles
 import random
 from bs4 import BeautifulSoup
 import cached_url
+import telepost
 
 with open('credential') as f:
     credential = yaml.load(f, Loader=yaml.FullLoader)
@@ -52,23 +52,20 @@ def getPosts(channel):
         except Exception as e:
             print('post_twitter post_2_album failed', post.getKey(), str(e))
 
-async def getMediaSingle(api, post):
-    fn = await post.download_media('tmp/')
-    if not fn:
-        return
+async def getMediaSingle(api, fn, post):
     try:
-        return api.media_upload(fn).media_id, fn
+        return api.media_upload(fn).media_id
     except Exception as e:
         print('post_twitter media upload failed:', str(e), str(post))
 
-async def getMedia(api, posts):
+async def getMedia(api, fns, post):
     result = []
-    for post in posts:
-        media = await getMediaSingle(api, post)
+    for fn in fns:
+        media = await getMediaSingle(api, fn, post)
         if media:
-            if media[1].endswith('.mp4'): # may need to revisit
-                return [media[0]]
-            result.append(media[0])
+            if fn.endswith('.mp4'): # may need to revisit
+                return [media]
+            result.append(media)
         if len(result) >= 4:
             return result
     return result
@@ -84,48 +81,9 @@ def getTwitterApi(channel):
     twitter_api_cache[user] = api
     return api
 
-client_cache = {}
-async def getTelethonClient():
-    if 'client' in client_cache:
-        return client_cache['client']
-    client = TelegramClient('session_file', credential['telegram_api_id'], credential['telegram_api_hash'])
-    await client.start(password=credential['telegram_user_password'])
-    client_cache['client'] = client   
-    return client_cache['client']
-
-async def getChannelImp(client, channel):
-    if channel not in credential['id_map']:
-        entity = await client.get_entity(channel)
-        credential['id_map'][channel] = entity.id
-        with open('credential', 'w') as f:
-            f.write(yaml.dump(credential, sort_keys=True, indent=2, allow_unicode=True))
-        return entity
-    return await client.get_entity(credential['id_map'][channel])
-        
-channels_cache = {}
-async def getChannel(client, channel):
-    if channel in channels_cache:
-        return channels_cache[channel]
-    channels_cache[channel] = await getChannelImp(client, channel)
-    return channels_cache[channel]
-
-def getGroupedPosts(posts):
-    grouped_id = None
-    result = []
-    for post in posts[::-1]:
-        if not grouped_id and not post.grouped_id:
-            return [post]
-        if not grouped_id:
-            grouped_id = post.grouped_id
-        if post.grouped_id == grouped_id:
-            result.append(post)
-    return result
-
 async def getMediaIds(api, channel, post, album):
-    client = await getTelethonClient()
-    entity = await getChannel(client, channel)
-    posts = await client.get_messages(entity, min_id=post.post_id - 1, max_id = post.post_id + 9)
-    media_ids = await getMedia(api, getGroupedPosts(posts))
+    fns = await telepost.getImagesV2(channel, post.id)
+    media_ids = await getMedia(api, fns, post)
     return list(media_ids)
 
 async def post_twitter(channel, post, album, status_text):
@@ -210,23 +168,8 @@ def getLinkReplace(url):
         print('post_twitter can not find link replace', url)
         return url
 
-def addAddtionalPlaceholder(text):
-    placeholder_count = 0
-    new_text = text[:]
-    for index, c in enumerate(text):
-        if ord(c) > 256 * 256:
-            new_text[index + placeholder_count: index + placeholder_count + 1] = [c, '']
-            placeholder_count += 1
-    return new_text 
-
 async def getText(channel, post):
-    client = await getTelethonClient()
-    entity = await getChannel(client, channel)
-    post = await client.get_messages(entity, ids=post.post_id)
-    if not post.message:
-        return ''
-    text = list(post.message)
-    text = addAddtionalPlaceholder(text)
+    text, post = await telepost.getRawText(channel, post.id)
     for entity in post.entities or []:
         origin_text = ''.join(text[entity.offset:entity.offset + entity.length])
         to_replace = entity.url if hasattr(entity, 'url') else origin_text
@@ -272,8 +215,7 @@ async def runImp():
 
 async def run():
     await runImp()
-    if 'client' in client_cache:
-        await client_cache['client'].disconnect()
+    await telepost.exitTelethon()
         
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()
