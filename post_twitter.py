@@ -147,6 +147,7 @@ def tooClose(channel):
     except Exception as e:
         print('post_twitter linked twitter for channel fetch fail', channel, user, e)
         return True
+    return elapse < 60 * 60 # testing
     if elapse < 60:
         return True
     if elapse > 60 * 60 * 5:
