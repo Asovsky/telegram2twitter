@@ -98,6 +98,7 @@ async def post_twitter(channel, post, album, status_text):
     except Exception as e:
         if 'Tweet needs to be a bit shorter.' not in str(e):
             print('post_twitter send twitter status failed:', str(e), album.url)
+            raise e
         
 
 def lenOk(text):
