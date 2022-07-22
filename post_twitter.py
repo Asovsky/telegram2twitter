@@ -104,7 +104,7 @@ async def post_twitter(channel, post, album, status_text):
 def lenOk(text):
     return sum([1 if ord(char) <= 256 else 2 for char in text]) <= 280
 
-def cutText(text, splitter='。'):
+def cutText(text, splitter):
     if not text:
         return ''
     result = ''
@@ -147,10 +147,9 @@ def tooClose(channel):
     except Exception as e:
         print('post_twitter linked twitter for channel fetch fail', channel, user, e)
         return True
-    # return elapse < 60 * 60 # testing
     if elapse < 60:
         return True
-    if elapse > 60 * 60 * 5:
+    if elapse > credential['channels'][channel].get('max_interval', 5 * 60) * 60:
         return False
     waiting_count = getWaitingCount(user)
     if waiting_count == 0:
@@ -169,6 +168,14 @@ def getLinkReplace(url):
     except:
         print('post_twitter can not find link replace', url)
         return url
+
+async def getRawText(channel, post):
+    text, post = await telepost.getRawText(channel, post.post_id)
+    text = ''.join(text)
+    text = '\n\n'.join([line.strip() for line in text.split('\n')]).strip()
+    for _ in range(5):
+        text.replace('\n\n\n', '\n\n')
+    return text
 
 async def getText(channel, post):
     text, post = await telepost.getRawText(channel, post.post_id)
@@ -202,10 +209,15 @@ async def runImp():
         for album, post in getPosts(channel):
             if existing.get(album.url):
                 continue
-            status_text = await getText(channel, post)
-            status_text = addSuffix(status_text, post, album)
+            if credential['channels'][channel].get('raw_text'):
+                status_text = await getRawText(channel, post)
+            else:
+                status_text = await getText(channel, post)
+                status_text = addSuffix(status_text, post, album)
             if credential['channels'][channel].get('cut_text'):
-                status_text = cutText(status_text)
+                status_text = cutText(status_text, credential['channels'][channel].get('splitter'))
+                if not lenOk(status_text) and credential['channels'][channel].get('second_splitter'):
+                    status_text = cutText(status_text, credential['channels'][channel].get('second_splitter'))
             if len(status_text) > 500: 
                 continue
             existing.update(album.url, -1) # place holder
