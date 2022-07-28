@@ -145,7 +145,8 @@ def tooClose(channel):
     try:
         elapse = time.time() - api.user_timeline(user_id=user, count=1)[0].created_at.timestamp()
     except Exception as e:
-        print('post_twitter linked twitter for channel fetch fail', channel, user, e)
+        if 'this account is temporarily locked' in str(e) and random.random() > 0.01:
+            print('post_twitter linked twitter for channel fetch fail', channel, user, e)
         return True
     if elapse < 60:
         return True
