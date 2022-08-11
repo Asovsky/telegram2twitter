@@ -140,6 +140,7 @@ def getWaitingCount(user):
     return count
 
 def tooClose(channel):
+    return channel != 'weibo_read'
     user = credential['channels'][channel]['twitter_user']
     api = getTwitterApi(channel)
     try:
@@ -187,6 +188,7 @@ async def getText(channel, post):
         text[entity.offset] = to_replace
         if entity.offset + entity.length == len(text) and origin_text == 'source':
             text[entity.offset] = '\n\n' + to_replace
+        print(entity)
         for index in range(entity.offset + 1, entity.offset + entity.length):
             text[index] = ''
     text = ''.join(text)
@@ -208,6 +210,8 @@ async def runImp():
         if tooClose(channel):
             continue
         for album, post in getPosts(channel):
+            if post.post_id != 96101:
+                continue
             if existing.get(album.url):
                 continue
             if credential['channels'][channel].get('raw_text'):
@@ -221,6 +225,9 @@ async def runImp():
                     status_text = cutText(status_text, credential['channels'][channel].get('second_splitter'))
             if len(status_text) > 500: 
                 continue
+            print(album.url)
+            print(status_text)
+            return # testing
             existing.update(album.url, -1) # place holder
             result = await post_twitter(channel, post, album, status_text)
             if not result:
