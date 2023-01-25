@@ -90,10 +90,10 @@ async def getMediaIds(api, channel, post, album):
 
 def try_post_twitter(api, status_text, media_ids):
     try:
-        print('try post', status_text) # testing
+        # print('try post', status_text) # testing
         return api.update_status(status=status_text, media_ids=media_ids)
     except Exception as e:
-        print('post_twitter post error', e) # testing
+        # print('post_twitter post error', e) # testing
         if 'Tweet needs to be a bit shorter.' not in str(e):
             print('post_twitter send twitter status failed:', str(e), album.url)
             raise e
