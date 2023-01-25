@@ -45,11 +45,10 @@ def getPosts(channel):
     result = getRawPosts(channel)
     cutoff_time = getCutoffTime(channel)
     for post in result:
-        # testing
-        # if post.time > cutoff_time:
-        #     continue
-        if post.post_id != 14969:
+        if post.time > cutoff_time:
             continue
+        # if post.post_id != 14969:
+        #     continue
         try:
             yield post_2_album.get('https://t.me/' + post.getKey()), post
         except Exception as e:
