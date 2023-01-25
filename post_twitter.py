@@ -8,7 +8,7 @@ import time
 import plain_db
 import webgram
 import post_2_album
-from telegram_util import removeOldFiles, matchKey
+from telegram_util import removeOldFiles, matchKey, isUrl
 import random
 from bs4 import BeautifulSoup
 import cached_url
@@ -93,6 +93,9 @@ async def post_twitter(channel, post, album, status_text):
         media_ids = await getMediaIds(api, channel, post, album)
         if not media_ids:
             return
+    if credential['channels'][channel].get('cut_link_if_too_long'):
+        last_line = status_text.split('\n')[-1]
+        if len(last_line.split()) == 1 and isUrl(last_line)
     try:
         return api.update_status(status=status_text, media_ids=media_ids)
     except Exception as e:
