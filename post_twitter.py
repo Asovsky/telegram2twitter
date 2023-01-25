@@ -45,7 +45,10 @@ def getPosts(channel):
     result = getRawPosts(channel)
     cutoff_time = getCutoffTime(channel)
     for post in result:
-        if post.time > cutoff_time:
+        # testing
+        # if post.time > cutoff_time:
+        #     continue
+        if post.post_id != 14969:
             continue
         try:
             yield post_2_album.get('https://t.me/' + post.getKey()), post
@@ -86,6 +89,16 @@ async def getMediaIds(api, channel, post, album):
     media_ids = await getMedia(api, fns, post)
     return list(media_ids)
 
+def try_post_twitter(api, status_text, media_ids):
+    try:
+        print('try post', status_text) # testing
+        return api.update_status(status=status_text, media_ids=media_ids)
+    except Exception as e:
+        print('post_twitter post error', e) # testing
+        if 'Tweet needs to be a bit shorter.' not in str(e):
+            print('post_twitter send twitter status failed:', str(e), album.url)
+            raise e
+
 async def post_twitter(channel, post, album, status_text):
     api = getTwitterApi(channel)
     media_ids = []
@@ -93,15 +106,19 @@ async def post_twitter(channel, post, album, status_text):
         media_ids = await getMediaIds(api, channel, post, album)
         if not media_ids:
             return
-    if credential['channels'][channel].get('cut_link_if_too_long'):
-        last_line = status_text.split('\n')[-1]
-        if len(last_line.split()) == 1 and isUrl(last_line)
-    try:
-        return api.update_status(status=status_text, media_ids=media_ids)
-    except Exception as e:
-        if 'Tweet needs to be a bit shorter.' not in str(e):
-            print('post_twitter send twitter status failed:', str(e), album.url)
-            raise e
+    result = try_post_twitter(api, status_text, media_ids)
+    if result:
+        return result
+    if not credential['channels'][channel].get('cut_link_if_too_long'):
+        return
+    last_line = status_text.split('\n')[-1]
+    if len(last_line.split()) == 1 and isUrl(last_line):
+        status_text = status_text[:-len(last_line)].strip()
+    else:
+        return
+    result = try_post_twitter(api, status_text, media_ids)
+    if result:
+        return result
         
 
 def lenOk(text):
