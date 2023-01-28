@@ -88,7 +88,7 @@ async def getMediaIds(api, channel, post, album):
     media_ids = await getMedia(api, fns, post)
     return list(media_ids)
 
-def try_post_twitter(api, status_text, media_ids):
+def try_post_twitter(api, status_text, media_ids, album):
     try:
         # print('try post', status_text) # testing
         return api.update_status(status=status_text, media_ids=media_ids)
@@ -105,7 +105,7 @@ async def post_twitter(channel, post, album, status_text):
         media_ids = await getMediaIds(api, channel, post, album)
         if not media_ids:
             return
-    result = try_post_twitter(api, status_text, media_ids)
+    result = try_post_twitter(api, status_text, media_ids, album)
     if result:
         return result
     if not credential['channels'][channel].get('cut_link_if_too_long'):
