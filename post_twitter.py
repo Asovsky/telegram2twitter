@@ -115,7 +115,7 @@ async def post_twitter(channel, post, album, status_text):
         status_text = status_text[:-len(last_line)].strip()
     else:
         return
-    result = try_post_twitter(api, status_text, media_ids)
+    result = try_post_twitter(api, status_text, media_ids, album)
     if result:
         return result
         
